@@ -2,7 +2,15 @@ abstract type AbstractReductiveGroup end
 
 abstract type AbstractReductiveLieGroup <: AbstractReductiveGroup end
 
+lie_algebra(::AbstractReductiveLieGroup) = error("Not implemented")
+
+
 abstract type AbstractFiniteGroup <: AbstractReductiveGroup end
+
+abstract type AbstractGroupElem end
+
+group(::AbstractGroupElem) = error("Not implemented")
+
 
 abstract type AbstractGroupAction end
 

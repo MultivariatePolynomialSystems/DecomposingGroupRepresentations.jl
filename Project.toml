@@ -3,6 +3,9 @@ uuid = "3934549d-b4b9-4a85-8fa6-9c281fbf1a3e"
 authors = ["Viktor Korotynskiy <korotynskiy.viktor@gmail.com> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+DynamicPolynomials = "7c1d4256-1411-5781-91ec-d7bc3513ac07"
+
 [compat]
 julia = "1.6.7"
 
