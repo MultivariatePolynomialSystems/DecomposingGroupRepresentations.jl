@@ -17,7 +17,7 @@ abstract type AbstractGroupAction end
 group(::AbstractGroupAction) = error("Not implemented")
 
 
-abstract type AbstractLieAlgebra end
+abstract type AbstractReductiveLieAlgebra end
 
 name(::AbstractLieAlgebra) = error("Not implemented")
 basis(::AbstractLieAlgebra) = error("Not implemented")

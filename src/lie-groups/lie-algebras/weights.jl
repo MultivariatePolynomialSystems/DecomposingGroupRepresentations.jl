@@ -1,5 +1,7 @@
 export Weight,
-    WeightVector
+    WeightVector,
+    WeightSpace,
+    WeightStructure
 
 
 struct Weight{T <: Number}
