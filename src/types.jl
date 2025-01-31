@@ -1,8 +1,8 @@
 abstract type AbstractReductiveGroup end
 
-abstract type AbstractReductiveLieGroup end
+abstract type AbstractReductiveLieGroup <: AbstractReductiveGroup end
 
-abstract type AbstractFiniteGroup end
+abstract type AbstractFiniteGroup <: AbstractReductiveGroup end
 
 abstract type AbstractGroupAction end
 
