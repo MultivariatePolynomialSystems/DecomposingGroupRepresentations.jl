@@ -6,9 +6,11 @@ DocMeta.setdocmeta!(DecomposingRepresentations, :DocTestSetup, :(using Decomposi
 makedocs(;
     modules=[DecomposingRepresentations],
     authors="Viktor Korotynskiy <korotynskiy.viktor@gmail.com> and contributors",
+    repo="https://github.com/MultivariatePolynomialSystems/DecomposingRepresentations.jl",
     sitename="DecomposingRepresentations.jl",
     format=Documenter.HTML(;
-        canonical="https://azoviktor.github.io/DecomposingRepresentations.jl",
+        prettyurls=get(ENV, "CI", "false") == "true",
+        canonical="https://multivariatepolynomialsystems.github.io/DecomposingRepresentations.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -18,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/azoviktor/DecomposingRepresentations.jl",
+    repo="github.com/MultivariatePolynomialSystems/MultivariateInterpolation.jl.git",
     devbranch="main",
 )
