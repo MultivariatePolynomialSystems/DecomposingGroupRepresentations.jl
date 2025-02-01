@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/MultivariatePolynomialSystems/MultivariateInterpolation.jl.git",
+    repo="github.com/MultivariatePolynomialSystems/DecomposingRepresentations.jl.git",
     devbranch="main",
 )
