@@ -4,7 +4,7 @@ CurrentModule = DecomposingRepresentations
 
 # DecomposingRepresentations
 
-Documentation for [DecomposingRepresentations](https://github.com/azoviktor/DecomposingRepresentations.jl).
+Documentation for [DecomposingRepresentations](https://github.com/multivariatepolynomialsystems/DecomposingRepresentations.jl).
 
 ```@index
 ```
