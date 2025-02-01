@@ -6,7 +6,7 @@ DocMeta.setdocmeta!(DecomposingRepresentations, :DocTestSetup, :(using Decomposi
 makedocs(;
     modules=[DecomposingRepresentations],
     authors="Viktor Korotynskiy <korotynskiy.viktor@gmail.com> and contributors",
-    repo="https://github.com/MultivariatePolynomialSystems/DecomposingRepresentations.jl",
+    repo="https://github.com/MultivariatePolynomialSystems/DecomposingRepresentations.jl/blob/{commit}{path}#{line}",
     sitename="DecomposingRepresentations.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
