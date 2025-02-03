@@ -17,13 +17,13 @@ abstract type AbstractGroupAction end
 group(::AbstractGroupAction) = error("Not implemented")
 
 
-abstract type AbstractReductiveLieAlgebra end
+abstract type AbstractReductiveLieAlgebra end # TODO: make parametric?
 
-name(::AbstractLieAlgebra) = error("Not implemented")
-basis(::AbstractLieAlgebra) = error("Not implemented")
-chevalley_basis(::AbstractLieAlgebra) = error("Not implemented")
-dim(::AbstractLieAlgebra) = error("Not implemented")
-rank(::AbstractLieAlgebra) = error("Not implemented")
+name(::AbstractReductiveLieAlgebra) = error("Not implemented")
+basis(::AbstractReductiveLieAlgebra) = error("Not implemented")
+chevalley_basis(::AbstractReductiveLieAlgebra) = error("Not implemented")
+dim(::AbstractReductiveLieAlgebra) = error("Not implemented")
+rank(::AbstractReductiveLieAlgebra) = error("Not implemented")
 
 
 abstract type AbstractLieAlgebraElem end

@@ -2,7 +2,7 @@ export MatrixVectorSpace,
     VectorSpace
 
 
-struct MatrixVectorSpace{T <: Number} <: AbstractVectorSpace
+struct MatrixVectorSpace{T} <: AbstractVectorSpace
     basis::Matrix{T}
 end
 
