@@ -31,30 +31,30 @@ abstract type AbstractLieAlgebraElem end
 algebra(::AbstractLieAlgebraElem) = error("Not implemented")
 
 
-abstract type AbstractVectorSpace end
+abstract type AbstractVectorSpace{F} end
 
 name(::AbstractVectorSpace) = error("Not implemented")
 basis(::AbstractVectorSpace) = error("Not implemented")
 dim(::AbstractVectorSpace) = error("Not implemented")
 
 
-abstract type AbstractDirectSum <: AbstractVectorSpace end
+abstract type AbstractDirectSum{F} <: AbstractVectorSpace{F} end
 
 spaces(::AbstractDirectSum) = error("Not implemented")
 
 
-abstract type AbstractSymmetricPower <: AbstractVectorSpace end
+abstract type AbstractSymmetricPower{F} <: AbstractVectorSpace{F} end
 
 base_space(::AbstractSymmetricPower) = error("Not implemented")
 power(::AbstractSymmetricPower) = error("Not implemented")
 
 
-abstract type AbstractTensorProduct <: AbstractVectorSpace end
+abstract type AbstractTensorProduct{F} <: AbstractVectorSpace{F} end
 
 spaces(::AbstractTensorProduct) = error("Not implemented")
 
 
-abstract type AbstractRepresentation{T<:AbstractReductiveGroup, S<:AbstractVectorSpace} end
+abstract type AbstractRepresentation{F, T<:AbstractReductiveGroup, S<:AbstractVectorSpace{F}} end
 
 group(::AbstractRepresentation) = error("Not implemented")
 action(::AbstractRepresentation) = error("Not implemented")

@@ -41,12 +41,36 @@ struct ChevalleyBasis{T}
     negative_roots::Vector{Root}
 end
 
+function ChevalleyBasis(
+    std_basis::Vector{Matrix{T1}},
+    cartan::Vector{Vector{T2}},
+    positive::Vector{Vector{T3}},
+    negative::Vector{Vector{T4}},
+    positive_roots::Vector{Vector{Int}},
+    negative_roots::Vector{Vector{Int}}
+) where {T1,T2,T3,T4}
+    T = promote_type(T1, T2, T3, T4)
+    return ChevalleyBasis{T}(std_basis, cartan, positive, negative, [Root(r) for r in positive_roots], [Root(r) for r in negative_roots])
+end
 
-struct ReductiveLieAlgebra{T, W} <: AbstractReductiveLieAlgebra
+Base.convert(
+    ::Type{ChevalleyBasis{T}},
+    ch_basis::ChevalleyBasis
+) where {T} = ChevalleyBasis(
+    convert(Vector{Matrix{T}}, ch_basis.std_basis),
+    convert(Vector{Vector{T}}, ch_basis.cartan),
+    convert(Vector{Vector{T}}, ch_basis.positive),
+    convert(Vector{Vector{T}}, ch_basis.negative),
+    ch_basis.positive_roots,
+    ch_basis.negative_roots
+)
+
+
+struct ReductiveLieAlgebra{F, W} <: AbstractReductiveLieAlgebra
     name::String
-    basis::ChevalleyBasis{T}
-    weight_structure::WeightStructure{MatrixVectorSpace{T}, W}
-    hw_spaces::Vector{WeightSpace{MatrixVectorSpace{T}, W}}
+    basis::ChevalleyBasis{F}
+    weight_structure::WeightStructure{F, MatrixVectorSpace{F}, W}
+    hw_spaces::Vector{WeightSpace{F, MatrixVectorSpace{F}, W}}
 end
 
 function so3_lie_algebra()
@@ -58,10 +82,10 @@ function so3_lie_algebra()
     negative = [[im, 1, 0]] # J₋
     pos_roots = [[1]]
     neg_roots = [[-1]]
-    ch_basis = ChevalleyBasis{Complex{Rational{Int}}}([X₁, X₂, X₃], cartan, positive, negative, pos_roots, neg_roots)
+    ch_basis = ChevalleyBasis([X₁, X₂, X₃], cartan, positive, negative, pos_roots, neg_roots)
     ws = WeightStructure([[-1], [0], [1]], [[1, -im, 0], [0, 0, 1], [1, im, 0]])
     hw_spaces = [WeightSpace([1], [1, im, 0])]
-    return ReductiveLieAlgebra("𝖘𝖔(3,ℂ)", ch_basis, ws, hw_spaces)
+    return ReductiveLieAlgebra{Complex{Rational{Int}}, Int}("𝖘𝖔(3)", ch_basis, ws, hw_spaces)
 end
 
 # TODO
@@ -78,8 +102,10 @@ dim(alg::ReductiveLieAlgebra) = length(alg.basis.std_basis)
 rank(alg::ReductiveLieAlgebra) = length(alg.basis.cartan)
 Base.size(alg::ReductiveLieAlgebra) = size(alg.basis.std_basis[1], 1)
 
-function Base.show(io::IO, alg::ReductiveLieAlgebra)
+function Base.show(io::IO, alg::ReductiveLieAlgebra{F, W}) where {F, W}
     println(io, "ReductiveLieAlgebra $(name(alg))")
+    println(io, " field (or number type): $(F)")
+    println(io, " weight type: Vector{$(W)}")
     println(io, " dimension: $(dim(alg))")
     print(io, " rank (dimension of Cartan subalgebra): $(rank(alg))")
 end

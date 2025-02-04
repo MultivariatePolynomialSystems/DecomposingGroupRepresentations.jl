@@ -18,42 +18,53 @@ end
 weight(wv::WeightVector) = wv.weight
 vector(wv::WeightVector) = wv.vector
 
-struct WeightSpace{T <: AbstractVectorSpace, W} # TODO: <: AbstractVectorSpace?
+struct WeightSpace{F, T <: AbstractVectorSpace{F}, W} # TODO: <: AbstractVectorSpace?
     weight::Weight{W}
     space::T
 end
 
-WeightSpace{T, W}(
-    w::Vector{W},
-    v::Vector
-) where {T <: AbstractVectorSpace, W} = WeightSpace(Weight(w), T(V2M(v)))
+WeightSpace(weight::Vector, space::Vector) = WeightSpace(Weight(weight), MatrixVectorSpace(space))
 
-WeightSpace(
-    w::Vector{W},
-    v::Vector
-) where {W} = WeightSpace{MatrixVectorSpace, W}(w, v)
+Base.convert(
+    ::Type{WeightSpace{F, T, W}},
+    ws::WeightSpace
+) where {F, T<:AbstractVectorSpace{F}, W} = WeightSpace(
+    convert(Weight{W}, weight(ws)),
+    convert(T, space(ws))
+)
 
 weight(ws::WeightSpace) = ws.weight
 space(ws::WeightSpace) = ws.space
 dim(ws::WeightSpace) = dim(space(ws))
 
-struct WeightStructure{T<:AbstractVectorSpace, W}
+struct WeightStructure{F, T<:AbstractVectorSpace{F}, W}
     weights::Vector{Weight{W}}
-    dict::Dict{Weight{W}, WeightSpace{T, W}}
+    dict::Dict{Weight{W}, WeightSpace{F, T, W}}
 end
 
-WeightStructure{T, W}(
-    weights::Vector{Weight{W}},
-    weight_spaces::Vector{<:Matrix}
-) where {T <: AbstractVectorSpace, W} = WeightStructure(
+WeightStructure(
+    weights::Vector{<:Weight},
+    weight_spaces::Vector{<:MatrixVectorSpace}
+) = WeightStructure(
     weights,
-    Dict(zip(weights, [WeightSpace(w, T(M)) for (w, M) in zip(weights, weight_spaces)]))
+    Dict(zip(weights, [WeightSpace(w, V) for (w, V) in zip(weights, weight_spaces)]))
 )
 
 WeightStructure(
-    weights::Vector{Vector{W}},
+    weights::Vector{<:Vector},
     weight_vectors::Vector{<:Vector}
-) where {W} = WeightStructure{MatrixVectorSpace, W}([Weight(w) for w in weights], [V2M(v) for v in weight_vectors])
+) = WeightStructure(
+    [Weight(w) for w in weights],
+    [MatrixVectorSpace(v) for v in weight_vectors]
+)
+
+Base.convert(
+    ::Type{WeightStructure{F, T, W}},
+    ws::WeightStructure
+) where {F, T<:AbstractVectorSpace{F}, W} = WeightStructure(
+    convert(Vector{Weight{W}}, ws.weights),
+    convert(Dict{Weight{W}, WeightSpace{F, T, W}}, ws.dict)
+)
 
 weights(ws::WeightStructure) = ws.weights
 nweights(ws::WeightStructure) = length(ws.weights)
