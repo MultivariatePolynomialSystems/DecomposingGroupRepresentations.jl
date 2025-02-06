@@ -1,9 +1,9 @@
 module DecomposingRepresentations
 
-using SparseArrays: SparseMatrixCSC
+using SparseArrays: SparseMatrixCSC, sparse
 
-using DynamicPolynomials: @polyvar
-export @polyvar
+using DynamicPolynomials: @polyvar, PolyVar
+export @polyvar, PolyVar
 
 include("utils/basic.jl")
 include("types.jl")
@@ -15,5 +15,6 @@ include("lie/lie-algebras/algebras.jl")
 include("lie/lie-algebras/elements.jl")
 
 include("lie/lie-groups/groups.jl")
+include("lie/lie-groups/actions.jl")
 
 end

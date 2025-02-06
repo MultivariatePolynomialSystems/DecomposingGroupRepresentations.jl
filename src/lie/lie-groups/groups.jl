@@ -6,6 +6,9 @@ struct ReductiveLieGroup{T <: AbstractReductiveLieAlgebra} <: AbstractReductiveL
     algebra::T
 end
 
+name(G::ReductiveLieGroup) = G.name
+algebra(G::ReductiveLieGroup) = G.algebra
+
 SO3() = ReductiveLieGroup("SO(3)", so3())
 
 # TODO
@@ -17,7 +20,10 @@ function ReductiveLieGroup(name::String, size::Int)
     end
 end
 
+ScalingLieGroup(size::Int) = ReductiveLieGroup("ℂˣ", ScalingLieAlgebra(size))
+
 function Base.show(io::IO, G::ReductiveLieGroup)
-    println(io, "ReductiveLieGroup $(G.name)")
-    print(io, " Lie algebra: ")
+    println(io, "ReductiveLieGroup $(name(G))")
+    println(io, " Lie algebra: ")
+    show(io, algebra(G); offset = 2)
 end

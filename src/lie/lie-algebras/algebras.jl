@@ -102,12 +102,12 @@ dim(alg::ReductiveLieAlgebra) = length(alg.basis.std_basis)
 rank(alg::ReductiveLieAlgebra) = length(alg.basis.cartan)
 Base.size(alg::ReductiveLieAlgebra) = size(alg.basis.std_basis[1], 1)
 
-function Base.show(io::IO, alg::ReductiveLieAlgebra{F, W}) where {F, W}
-    println(io, "ReductiveLieAlgebra $(name(alg))")
-    println(io, " field (or number type): $(F)")
-    println(io, " weight type: Vector{$(W)}")
-    println(io, " dimension: $(dim(alg))")
-    print(io, " rank (dimension of Cartan subalgebra): $(rank(alg))")
+function Base.show(io::IO, alg::ReductiveLieAlgebra{F, W}; offset::Int=0) where {F, W}
+    println(io, " "^offset, "ReductiveLieAlgebra $(name(alg))")
+    println(io, " "^offset, " number type (or field): $(F)")
+    println(io, " "^offset, " weight type: Vector{$(W)}")
+    println(io, " "^offset, " dimension: $(dim(alg))")
+    print(io, " "^offset, " rank (dimension of Cartan subalgebra): $(rank(alg))")
 end
 
 function basis(alg::ReductiveLieAlgebra; as_matrices::Bool=false)
