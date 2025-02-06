@@ -5,6 +5,7 @@ version = "1.0.0-DEV"
 
 [deps]
 DynamicPolynomials = "7c1d4256-1411-5781-91ec-d7bc3513ac07"
+LinearAlgebraX = "9b3f67b0-2d00-526e-9884-9e4938f8fb88"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]

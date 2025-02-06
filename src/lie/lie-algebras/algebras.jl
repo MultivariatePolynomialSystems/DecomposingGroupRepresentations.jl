@@ -73,7 +73,7 @@ struct ReductiveLieAlgebra{F, W} <: AbstractReductiveLieAlgebra
     hw_spaces::Vector{WeightSpace{F, MatrixVectorSpace{F}, W}}
 end
 
-function so3_lie_algebra()
+function so3()
     X₁ = [0 0 0; 0 0 -1; 0 1 0]
     X₂ = [0 0 1; 0 0 0; -1 0 0]
     X₃ = [0 -1 0; 1 0 0; 0 0 0]
@@ -91,7 +91,7 @@ end
 # TODO
 function ReductiveLieAlgebra(name::String, size::Int)
     if name == "so" && size == 3
-        return so3_lie_algebra()
+        return so3()
     else
         error("Not implemented")
     end

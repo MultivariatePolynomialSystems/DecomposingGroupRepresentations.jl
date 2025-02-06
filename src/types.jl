@@ -16,6 +16,8 @@ abstract type AbstractGroupAction end
 
 group(::AbstractGroupAction) = error("Not implemented")
 
+abstract type AbstractMatrixGroupAction end
+
 
 abstract type AbstractReductiveLieAlgebra end # TODO: make parametric?
 
