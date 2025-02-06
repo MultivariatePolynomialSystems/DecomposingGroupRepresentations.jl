@@ -34,7 +34,7 @@ exponents(a::ScalingLieGroupAction) = exponents(algebra(group(a)))
 
 ScalingLieGroupAction(v::Vector) = ScalingLieGroupAction(ReductiveLieGroup("ℂˣ", ScalingLieAlgebra(length(v))), v)
 
-function show_action(io::IO, a::ScalingLieGroupAction{<:PolyVar}; offset::Int=0)
+function show_action(io::IO, a::ScalingLieGroupAction{<:Variable}; offset::Int=0)
     U = exponents(a)
     if size(U, 1) == 1
         @polyvar λ
@@ -42,7 +42,7 @@ function show_action(io::IO, a::ScalingLieGroupAction{<:PolyVar}; offset::Int=0)
     else
         @polyvar λ[1:size(U, 1)]
     end
-    action = Vector{Vector{Tuple{PolyVar, Monomial}}}([[] for _ in axes(U, 1)])
+    action = Vector{Vector{Tuple{Variable, Monomial}}}([[] for _ in axes(U, 1)])
     vars = action_vector(a)
     for j in axes(U, 1)
         nzind, nzval = findnz(U[j, :])
