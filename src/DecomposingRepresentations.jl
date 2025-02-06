@@ -1,9 +1,9 @@
 module DecomposingRepresentations
 
-using SparseArrays: SparseMatrixCSC, sparse
+using SparseArrays: SparseMatrixCSC, sparse, findnz
 
-using DynamicPolynomials: @polyvar, PolyVar
-export @polyvar, PolyVar
+using DynamicPolynomials: @polyvar, PolyVar, Monomial
+export @polyvar, PolyVar, Monomial
 
 include("utils/basic.jl")
 include("types.jl")

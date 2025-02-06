@@ -20,8 +20,6 @@ function ReductiveLieGroup(name::String, size::Int)
     end
 end
 
-ScalingLieGroup(size::Int) = ReductiveLieGroup("ℂˣ", ScalingLieAlgebra(size))
-
 function Base.show(io::IO, G::ReductiveLieGroup)
     println(io, "ReductiveLieGroup $(name(G))")
     println(io, " Lie algebra: ")
