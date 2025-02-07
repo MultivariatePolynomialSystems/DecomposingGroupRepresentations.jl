@@ -1,4 +1,5 @@
 export MatrixGroupAction,
+    group,
     action_vectors,
     ScalingLieGroupAction
 
@@ -23,7 +24,7 @@ end
 
 
 struct ScalingLieGroupAction{T} <: AbstractGroupAction
-    group::ReductiveLieGroup{ScalingLieAlgebra}
+    group::LieGroup{ScalingLieAlgebra}
     vector::Vector{T}
 end
 
@@ -32,9 +33,9 @@ action_vector(a::ScalingLieGroupAction) = a.vector
 action_vectors(a::ScalingLieGroupAction) = [a.vector]
 exponents(a::ScalingLieGroupAction) = exponents(algebra(group(a)))
 
-ScalingLieGroupAction(v::Vector) = ScalingLieGroupAction(ReductiveLieGroup("ℂˣ", ScalingLieAlgebra(length(v))), v)
+ScalingLieGroupAction(v::Vector) = ScalingLieGroupAction(LieGroup("ℂˣ", ScalingLieAlgebra(length(v))), v)
 
-function show_action(io::IO, a::ScalingLieGroupAction{<:Variable}; offset::Int=0)
+function show_action(io::IO, a::ScalingLieGroupAction; offset::Int=0)
     U = exponents(a)
     if size(U, 1) == 1
         @polyvar λ
@@ -42,12 +43,12 @@ function show_action(io::IO, a::ScalingLieGroupAction{<:Variable}; offset::Int=0
     else
         @polyvar λ[1:size(U, 1)]
     end
-    action = Vector{Vector{Tuple{Variable, Monomial}}}([[] for _ in axes(U, 1)])
+    action = []
     vars = action_vector(a)
     for j in axes(U, 1)
         nzind, nzval = findnz(U[j, :])
         exprs = (λ[j].^nzval).*vars[nzind]
-        action[j] = collect(zip(vars[nzind], exprs))
+        push!(action, collect(zip(vars[nzind], exprs)))
     end
     for free_action in action
         print(io, "\n", " "^offset)
@@ -60,6 +61,13 @@ end
 
 function Base.show(io::IO, a::ScalingLieGroupAction)
     println(io, "ScalingLieGroupAction of $(name(group(a)))")
+    println(io, " vector under action: ", "[", join(map(repr, action_vector(a)), ", "), "]")
     print(io, " action:")
     show_action(io, a; offset = 2)
+end
+
+
+struct DirectProductLieGroupAction <: AbstractGroupAction
+    group::DirectProductLieGroup
+    actions::Vector{AbstractGroupAction}
 end

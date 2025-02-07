@@ -9,9 +9,9 @@ end
 
 algebra(elem::LieAlgebraElem) = elem.alg
 Base.size(elem::LieAlgebraElem) = size(algebra(elem))
-Base.zero(alg::ReductiveLieAlgebra{T,W}) where {T,W} = LieAlgebraElem(alg, zeros(T, dim(alg)))
+Base.zero(alg::LieAlgebra{T,W}) where {T,W} = LieAlgebraElem(alg, zeros(T, dim(alg)))
 Base.zero(alg::ScalingLieAlgebra) = LieAlgebraElem(alg, zeros(Int, dim(alg)))
-Base.randn(alg::ReductiveLieAlgebra{T,W}) where {T,W} = LieAlgebraElem(alg, randn(T, dim(alg)))
+Base.randn(alg::LieAlgebra{T,W}) where {T,W} = LieAlgebraElem(alg, randn(T, dim(alg)))
 Base.randn(alg::ScalingLieAlgebra) = LieAlgebraElem(alg, randn(ComplexF64, dim(alg)))
 
 # called by Shift+Enter
@@ -41,14 +41,14 @@ end
 
 
 struct SumLieAlgebraElem <: AbstractLieAlgebraElem
-    alg::SumReductiveLieAlgebra
+    alg::SumLieAlgebra
     elems::Vector{LieAlgebraElem}
 end
 
 algebra(elem::SumLieAlgebraElem) = elem.alg
 elems(elem::SumLieAlgebraElem) = elem.elems
-Base.randn(alg::SumReductiveLieAlgebra) = SumLieAlgebraElem(alg, [randn(a) for a in algebras(alg)])
-Base.zero(alg::SumReductiveLieAlgebra) = SumLieAlgebraElem(alg, [zero(a) for a in algebras(alg)])
+Base.randn(alg::SumLieAlgebra) = SumLieAlgebraElem(alg, [randn(a) for a in algebras(alg)])
+Base.zero(alg::SumLieAlgebra) = SumLieAlgebraElem(alg, [zero(a) for a in algebras(alg)])
 Base.getindex(elem::SumLieAlgebraElem, i::Int) = elems(elem)[i]
 Base.setindex!(elem::SumLieAlgebraElem, val, i) = (elems(elem)[i] = val)
 

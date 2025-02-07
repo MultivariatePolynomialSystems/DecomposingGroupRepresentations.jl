@@ -1,4 +1,4 @@
-export ReductiveLieAlgebra
+export LieAlgebra
 
 
 struct ScalingLieAlgebra <: AbstractReductiveLieAlgebra
@@ -13,6 +13,20 @@ dim(alg::ScalingLieAlgebra) = size(alg.exps, 1)
 exponents(alg::ScalingLieAlgebra) = alg.exps
 rank(alg::ScalingLieAlgebra) = dim(alg)
 Base.size(alg::ScalingLieAlgebra) = size(alg.exps, 2)
+
+function show_basis(io::IO, alg::ScalingLieAlgebra; offset::Int=0)
+    for i in 1:dim(alg)
+        print(io, " "^offset, "[", join(alg.exps[i, :], ", "), "]")
+        i < dim(alg) && print(io, '\n')
+    end
+end
+
+function Base.show(io::IO, alg::ScalingLieAlgebra; offset::Int=0)
+    println(io, " "^offset, "ScalingLieAlgebra $(name(alg))")
+    println(io, " "^offset, " dimension: $(dim(alg))")
+    println(io, " "^offset, " basis (diagonal matrices):")
+    show_basis(io, alg, offset=offset+2)
+end
 
 function basis(alg::ScalingLieAlgebra; as_matrices::Bool=false)
     as_matrices && return [Diagonal(e) for e in eachrow(alg.exps)]
@@ -66,7 +80,7 @@ Base.convert(
 )
 
 
-struct ReductiveLieAlgebra{F, W} <: AbstractReductiveLieAlgebra
+struct LieAlgebra{F, W} <: AbstractReductiveLieAlgebra
     name::String
     basis::ChevalleyBasis{F}
     weight_structure::WeightStructure{F, MatrixVectorSpace{F}, W}
@@ -85,11 +99,11 @@ function so3()
     ch_basis = ChevalleyBasis([X₁, X₂, X₃], cartan, positive, negative, pos_roots, neg_roots)
     ws = WeightStructure([[-1], [0], [1]], [[1, -im, 0], [0, 0, 1], [1, im, 0]])
     hw_spaces = [WeightSpace([1], [1, im, 0])]
-    return ReductiveLieAlgebra{Complex{Rational{Int}}, Int}("𝖘𝖔(3)", ch_basis, ws, hw_spaces)
+    return LieAlgebra{Complex{Rational{Int}}, Int}("𝖘𝖔(3)", ch_basis, ws, hw_spaces)
 end
 
 # TODO
-function ReductiveLieAlgebra(name::String, size::Int)
+function LieAlgebra(name::String, size::Int)
     if name == "so" && size == 3
         return so3()
     else
@@ -97,20 +111,20 @@ function ReductiveLieAlgebra(name::String, size::Int)
     end
 end
 
-name(alg::ReductiveLieAlgebra) = alg.name
-dim(alg::ReductiveLieAlgebra) = length(alg.basis.std_basis)
-rank(alg::ReductiveLieAlgebra) = length(alg.basis.cartan)
-Base.size(alg::ReductiveLieAlgebra) = size(alg.basis.std_basis[1], 1)
+name(alg::LieAlgebra) = alg.name
+dim(alg::LieAlgebra) = length(alg.basis.std_basis)
+rank(alg::LieAlgebra) = length(alg.basis.cartan)
+Base.size(alg::LieAlgebra) = size(alg.basis.std_basis[1], 1)
 
-function Base.show(io::IO, alg::ReductiveLieAlgebra{F, W}; offset::Int=0) where {F, W}
-    println(io, " "^offset, "ReductiveLieAlgebra $(name(alg))")
+function Base.show(io::IO, alg::LieAlgebra{F, W}; offset::Int=0) where {F, W}
+    println(io, " "^offset, "LieAlgebra $(name(alg))")
     println(io, " "^offset, " number type (or field): $(F)")
     println(io, " "^offset, " weight type: Vector{$(W)}")
     println(io, " "^offset, " dimension: $(dim(alg))")
     print(io, " "^offset, " rank (dimension of Cartan subalgebra): $(rank(alg))")
 end
 
-function basis(alg::ReductiveLieAlgebra; as_matrices::Bool=false)
+function basis(alg::LieAlgebra; as_matrices::Bool=false)
     if as_matrices
         return alg.basis.std_basis
     end
@@ -118,46 +132,50 @@ function basis(alg::ReductiveLieAlgebra; as_matrices::Bool=false)
     return [LieAlgebraElem(alg, c) for c in eachcol(coeffs)]
 end
 
-cartan_subalgebra(alg::ReductiveLieAlgebra) = [LieAlgebraElem(alg, coeffs) for coeffs in alg.basis.cartan]
+cartan_subalgebra(alg::LieAlgebra) = [LieAlgebraElem(alg, coeffs) for coeffs in alg.basis.cartan]
 positive_root_elements(
-    alg::ReductiveLieAlgebra
+    alg::LieAlgebra
 ) = [RootElem(alg, coeffs, root) for (coeffs, root) in zip(alg.basis.positive, alg.basis.positive_roots)]
 negative_root_elements(
-    alg::ReductiveLieAlgebra
+    alg::LieAlgebra
 ) = [RootElem(alg, coeffs, root) for (coeffs, root) in zip(alg.basis.negative, alg.basis.negative_roots)]
-weight_structure(alg::ReductiveLieAlgebra) = alg.weight_structure
-weights(alg::ReductiveLieAlgebra) = weights(alg.weight_structure)
-nweights(alg::ReductiveLieAlgebra) = nweights(alg.weight_structure)
-hw_spaces(alg::ReductiveLieAlgebra) = alg.hw_spaces
+weight_structure(alg::LieAlgebra) = alg.weight_structure
+weights(alg::LieAlgebra) = weights(alg.weight_structure)
+nweights(alg::LieAlgebra) = nweights(alg.weight_structure)
+hw_spaces(alg::LieAlgebra) = alg.hw_spaces
 
 
-struct SumReductiveLieAlgebra <: AbstractReductiveLieAlgebra
+struct SumLieAlgebra <: AbstractReductiveLieAlgebra
     name::String
     algs::Vector{AbstractReductiveLieAlgebra}
 end
 
-name(alg::SumReductiveLieAlgebra) = alg.name
-algebras(alg::SumReductiveLieAlgebra) = alg.algs
-dim(alg::SumReductiveLieAlgebra) = sum([dim(a) for a in algebras(alg)])
-rank(alg::SumReductiveLieAlgebra) = sum([rank(a) for a in algebras(alg)])
+SumLieAlgebra(
+    algs::Vector{AbstractReductiveLieAlgebra}
+) = SumLieAlgebra(join([name(alg) for alg in algs], " ⊕ "), algs)
 
-function Base.show(io::IO, alg::SumReductiveLieAlgebra)
-    println(io, "SumReductiveLieAlgebra $(name(alg))")
-    println(io, " dimension: $(dim(alg))")
-    print(io, " rank (dimension of Cartan subalgebra): $(rank(alg))")
+name(alg::SumLieAlgebra) = alg.name
+algebras(alg::SumLieAlgebra) = alg.algs
+dim(alg::SumLieAlgebra) = sum([dim(a) for a in algebras(alg)])
+rank(alg::SumLieAlgebra) = sum([rank(a) for a in algebras(alg)])
+
+function Base.show(io::IO, alg::SumLieAlgebra; offset::Int=0)
+    println(io, " "^offset, "SumLieAlgebra $(name(alg))")
+    println(io, " "^offset, " dimension: $(dim(alg))")
+    print(io, " "^offset, " rank (dimension of Cartan subalgebra): $(rank(alg))")
 end
 
 ⊕(
     alg₁::AbstractReductiveLieAlgebra,
     alg₂::AbstractReductiveLieAlgebra
-) = SumReductiveLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [alg₁, alg₂])
+) = SumLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [alg₁, alg₂])
 
 ⊕(
-    alg₁::SumReductiveLieAlgebra,
+    alg₁::SumLieAlgebra,
     alg₂::AbstractReductiveLieAlgebra
-) = SumReductiveLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [algebras(alg₁)..., alg₂])
+) = SumLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [algebras(alg₁)..., alg₂])
 
-function get_elements(alg::SumReductiveLieAlgebra, sym::Symbol)
+function get_elements(alg::SumLieAlgebra, sym::Symbol)
     elems = SumLieAlgebraElem[]
     for (i, a) in enumerate(algebras(alg))
         a_elems = eval(sym)(a)
@@ -177,6 +195,6 @@ function get_elements(alg::SumReductiveLieAlgebra, sym::Symbol)
     return elems
 end
 
-cartan_subalgebra(alg::SumReductiveLieAlgebra) = get_elements(alg, :cartan_subalgebra)
-positive_root_elements(alg::SumReductiveLieAlgebra) = get_elements(alg, :positive_root_elements)
-negative_root_elements(alg::SumReductiveLieAlgebra) = get_elements(alg, :negative_root_elements)
+cartan_subalgebra(alg::SumLieAlgebra) = get_elements(alg, :cartan_subalgebra)
+positive_root_elements(alg::SumLieAlgebra) = get_elements(alg, :positive_root_elements)
+negative_root_elements(alg::SumLieAlgebra) = get_elements(alg, :negative_root_elements)
