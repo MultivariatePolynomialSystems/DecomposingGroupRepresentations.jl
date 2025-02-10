@@ -1,25 +1,25 @@
-abstract type AbstractReductiveGroup end
+abstract type AbstractReductiveGroup{F} end
 
-abstract type AbstractReductiveLieGroup <: AbstractReductiveGroup end
+abstract type AbstractReductiveLieGroup{F} <: AbstractReductiveGroup{F} end
 
 lie_algebra(::AbstractReductiveLieGroup) = error("Not implemented")
 
 
-abstract type AbstractFiniteGroup <: AbstractReductiveGroup end
+abstract type AbstractFiniteGroup{F} <: AbstractReductiveGroup{F} end
+
+abstract type AbstractDirectProductGroup{F} <: AbstractReductiveGroup{F} end
 
 abstract type AbstractGroupElem end
 
 group(::AbstractGroupElem) = error("Not implemented")
 
 
-abstract type AbstractGroupAction end
+abstract type AbstractGroupAction{T <: AbstractReductiveGroup} end
 
 group(::AbstractGroupAction) = error("Not implemented")
 
-abstract type AbstractMatrixGroupAction end
 
-
-abstract type AbstractReductiveLieAlgebra end # TODO: make parametric?
+abstract type AbstractReductiveLieAlgebra{F} end
 
 name(::AbstractReductiveLieAlgebra) = error("Not implemented")
 basis(::AbstractReductiveLieAlgebra) = error("Not implemented")
@@ -33,7 +33,7 @@ abstract type AbstractLieAlgebraElem end
 algebra(::AbstractLieAlgebraElem) = error("Not implemented")
 
 
-abstract type AbstractVectorSpace{F} end
+abstract type AbstractVectorSpace{F} end # TODO: remove F?
 
 name(::AbstractVectorSpace) = error("Not implemented")
 basis(::AbstractVectorSpace) = error("Not implemented")
@@ -56,7 +56,7 @@ abstract type AbstractTensorProduct{F} <: AbstractVectorSpace{F} end
 spaces(::AbstractTensorProduct) = error("Not implemented")
 
 
-abstract type AbstractRepresentation{F, T<:AbstractReductiveGroup, S<:AbstractVectorSpace{F}} end
+abstract type AbstractRepresentation{F, T<:AbstractReductiveGroup{F}, S<:AbstractVectorSpace{F}} end
 
 group(::AbstractRepresentation) = error("Not implemented")
 action(::AbstractRepresentation) = error("Not implemented")
