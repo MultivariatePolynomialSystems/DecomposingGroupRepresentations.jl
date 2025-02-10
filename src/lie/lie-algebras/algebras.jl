@@ -1,12 +1,12 @@
 export LieAlgebra
 
 
-struct ScalingLieAlgebra <: AbstractReductiveLieAlgebra
+struct ScalingLieAlgebra{F} <: AbstractReductiveLieAlgebra{F}
     name::String
     exps::SparseMatrixCSC{Int, Int} # every row is a vector u = [u₁,...,uₖ] which acts on vars by λᵘ
 end
 
-ScalingLieAlgebra(size::Int) = ScalingLieAlgebra("ℂ", sparse(ones(Int, 1, size)))
+ScalingLieAlgebra{F}(size::Int) where F = ScalingLieAlgebra{F}("ℂ", sparse(ones(Int, 1, size)))
 
 name(alg::ScalingLieAlgebra) = alg.name
 dim(alg::ScalingLieAlgebra) = size(alg.exps, 1)
@@ -21,16 +21,17 @@ function show_basis(io::IO, alg::ScalingLieAlgebra; offset::Int=0)
     end
 end
 
-function Base.show(io::IO, alg::ScalingLieAlgebra; offset::Int=0)
+function Base.show(io::IO, alg::ScalingLieAlgebra{F}; offset::Int=0) where F
     println(io, " "^offset, "ScalingLieAlgebra $(name(alg))")
+    println(io, " "^offset, " number type (or field): $(F)")
     println(io, " "^offset, " dimension: $(dim(alg))")
     println(io, " "^offset, " basis (diagonal matrices):")
     show_basis(io, alg, offset=offset+2)
 end
 
-function basis(alg::ScalingLieAlgebra; as_matrices::Bool=false)
-    as_matrices && return [Diagonal(e) for e in eachrow(alg.exps)]
-    coeffs = eye(ComplexF64, dim(alg))
+function basis(alg::ScalingLieAlgebra{F}; as_matrices::Bool=false) where F
+    as_matrices && return [Diagonal(F.(e)) for e in eachrow(alg.exps)]
+    coeffs = eye(F, dim(alg))
     return [LieAlgebraElem(alg, c) for c in eachcol(coeffs)]
 end
 
@@ -42,8 +43,8 @@ struct Root
     root::Vector{Int}
 end
 
-Base.:+(r::Root, w::Weight{T}) where {T <: Number} = Weight(r.root + w.weight)
-Base.:+(w::Weight{T}, r::Root) where {T <: Number} = Weight(w.weight + r.root)
+Base.:+(r::Root, w::Weight) = Weight(r.root + w.weight)
+Base.:+(w::Weight, r::Root) = Weight(w.weight + r.root)
 Base.convert(::Type{Root}, v::Vector{Int}) = Root(v)
 
 struct ChevalleyBasis{T}
@@ -80,14 +81,14 @@ Base.convert(
 )
 
 
-struct LieAlgebra{F, W} <: AbstractReductiveLieAlgebra
+struct LieAlgebra{F, W} <: AbstractReductiveLieAlgebra{F}
     name::String
     basis::ChevalleyBasis{F}
     weight_structure::WeightStructure{F, MatrixVectorSpace{F}, W}
     hw_spaces::Vector{WeightSpace{F, MatrixVectorSpace{F}, W}}
 end
 
-function so3()
+function so3(F::DataType, W::DataType)
     X₁ = [0 0 0; 0 0 -1; 0 1 0]
     X₂ = [0 0 1; 0 0 0; -1 0 0]
     X₃ = [0 -1 0; 1 0 0; 0 0 0]
@@ -99,8 +100,9 @@ function so3()
     ch_basis = ChevalleyBasis([X₁, X₂, X₃], cartan, positive, negative, pos_roots, neg_roots)
     ws = WeightStructure([[-1], [0], [1]], [[1, -im, 0], [0, 0, 1], [1, im, 0]])
     hw_spaces = [WeightSpace([1], [1, im, 0])]
-    return LieAlgebra{Complex{Rational{Int}}, Int}("𝖘𝖔(3)", ch_basis, ws, hw_spaces)
+    return LieAlgebra{F, W}("𝖘𝖔(3)", ch_basis, ws, hw_spaces)
 end
+so3() = so3(ComplexF64, Int)
 
 # TODO
 function LieAlgebra(name::String, size::Int)
@@ -124,11 +126,11 @@ function Base.show(io::IO, alg::LieAlgebra{F, W}; offset::Int=0) where {F, W}
     print(io, " "^offset, " rank (dimension of Cartan subalgebra): $(rank(alg))")
 end
 
-function basis(alg::LieAlgebra; as_matrices::Bool=false)
+function basis(alg::LieAlgebra{F}; as_matrices::Bool=false) where F
     if as_matrices
         return alg.basis.std_basis
     end
-    coeffs = eye(ComplexF64, dim(alg))
+    coeffs = eye(F, dim(alg))
     return [LieAlgebraElem(alg, c) for c in eachcol(coeffs)]
 end
 
@@ -145,9 +147,9 @@ nweights(alg::LieAlgebra) = nweights(alg.weight_structure)
 hw_spaces(alg::LieAlgebra) = alg.hw_spaces
 
 
-struct SumLieAlgebra <: AbstractReductiveLieAlgebra
+struct SumLieAlgebra{F} <: AbstractReductiveLieAlgebra{F}
     name::String
-    algs::Vector{AbstractReductiveLieAlgebra}
+    algs::Vector{AbstractReductiveLieAlgebra{F}}
 end
 
 SumLieAlgebra(
@@ -159,21 +161,22 @@ algebras(alg::SumLieAlgebra) = alg.algs
 dim(alg::SumLieAlgebra) = sum([dim(a) for a in algebras(alg)])
 rank(alg::SumLieAlgebra) = sum([rank(a) for a in algebras(alg)])
 
-function Base.show(io::IO, alg::SumLieAlgebra; offset::Int=0)
+function Base.show(io::IO, alg::SumLieAlgebra{F}; offset::Int=0) where F
     println(io, " "^offset, "SumLieAlgebra $(name(alg))")
+    println(io, " "^offset, " number type (or field): $(F)")
     println(io, " "^offset, " dimension: $(dim(alg))")
     print(io, " "^offset, " rank (dimension of Cartan subalgebra): $(rank(alg))")
 end
 
 ⊕(
-    alg₁::AbstractReductiveLieAlgebra,
-    alg₂::AbstractReductiveLieAlgebra
-) = SumLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [alg₁, alg₂])
+    alg₁::AbstractReductiveLieAlgebra{F},
+    alg₂::AbstractReductiveLieAlgebra{F}
+) where F = SumLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [alg₁, alg₂])
 
 ⊕(
-    alg₁::SumLieAlgebra,
-    alg₂::AbstractReductiveLieAlgebra
-) = SumLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [algebras(alg₁)..., alg₂])
+    alg₁::SumLieAlgebra{F},
+    alg₂::AbstractReductiveLieAlgebra{F}
+) where F = SumLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [algebras(alg₁)..., alg₂])
 
 function get_elements(alg::SumLieAlgebra, sym::Symbol)
     elems = SumLieAlgebraElem[]

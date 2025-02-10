@@ -8,11 +8,12 @@ struct LieAlgebraElem{T<:AbstractReductiveLieAlgebra, S} <: AbstractLieAlgebraEl
 end
 
 algebra(elem::LieAlgebraElem) = elem.alg
+matrix(elem::LieAlgebraElem) = sum([elem.coeffs[i]*Bᵢ for (i, Bᵢ) in enumerate(basis(algebra(elem); as_matrices=true))])
 Base.size(elem::LieAlgebraElem) = size(algebra(elem))
-Base.zero(alg::LieAlgebra{T,W}) where {T,W} = LieAlgebraElem(alg, zeros(T, dim(alg)))
-Base.zero(alg::ScalingLieAlgebra) = LieAlgebraElem(alg, zeros(Int, dim(alg)))
-Base.randn(alg::LieAlgebra{T,W}) where {T,W} = LieAlgebraElem(alg, randn(T, dim(alg)))
-Base.randn(alg::ScalingLieAlgebra) = LieAlgebraElem(alg, randn(ComplexF64, dim(alg)))
+Base.zero(alg::LieAlgebra{F}) where F = LieAlgebraElem(alg, zeros(F, dim(alg)))
+Base.zero(alg::ScalingLieAlgebra{F}) where F = LieAlgebraElem(alg, zeros(F, dim(alg)))
+Base.rand(alg::LieAlgebra{F}) where F = LieAlgebraElem(alg, rand(F, dim(alg)))
+Base.rand(alg::ScalingLieAlgebra{F}) where F = LieAlgebraElem(alg, rand(F, dim(alg)))
 
 # called by Shift+Enter
 function Base.show(io::IO, mime::MIME"text/plain", elem::LieAlgebraElem)

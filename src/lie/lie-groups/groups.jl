@@ -1,7 +1,19 @@
 export LieGroup, DirectProductLieGroup, ×
 
 
-struct LieGroup{T <: AbstractReductiveLieAlgebra} <: AbstractReductiveLieGroup
+struct ScalingLieGroup{F} <: AbstractReductiveLieGroup{F}
+    name::String
+    algebra::ScalingLieAlgebra{F}
+end
+
+ScalingLieGroup{F}(size::Int) where F = ScalingLieGroup("ℂˣ", ScalingLieAlgebra{F}(size))
+
+name(G::ScalingLieGroup) = G.name
+algebra(G::ScalingLieGroup) = G.algebra
+exponents(G::ScalingLieGroup) = exponents(algebra(G))
+
+
+struct LieGroup{F, T <: LieAlgebra{F}} <: AbstractReductiveLieGroup{F}
     name::String
     algebra::T
 end
@@ -20,16 +32,17 @@ function LieGroup(name::String, size::Int)
     end
 end
 
-function Base.show(io::IO, G::LieGroup)
+function Base.show(io::IO, G::LieGroup{F}) where F
     println(io, "LieGroup $(name(G))")
+    println(io, " number type (or field): $(F)")
     println(io, " Lie algebra:")
     show(io, algebra(G); offset = 2)
 end
 
 
-struct DirectProductLieGroup <: AbstractReductiveLieGroup
+struct DirectProductLieGroup{F, T <: AbstractReductiveLieGroup{F}} <: AbstractDirectProductGroup{F}
     name::String
-    groups::Vector{AbstractReductiveLieGroup}
+    groups::Vector{T}
 end
 
 DirectProductLieGroup(
@@ -39,10 +52,13 @@ DirectProductLieGroup(
 name(G::DirectProductLieGroup) = G.name
 groups(G::DirectProductLieGroup) = G.groups
 algebra(G::DirectProductLieGroup) = SumLieAlgebra([algebra(Gᵢ) for Gᵢ in groups(G)])
-×(G₁::AbstractReductiveLieGroup, G₂::AbstractReductiveLieGroup) = DirectProductLieGroup([G₁, G₂])
+×(
+    G₁::AbstractReductiveLieGroup{F},
+    G₂::AbstractReductiveLieGroup{F}
+) where F = DirectProductLieGroup("$(name(G₁)) × $(name(G₂))", [G₁, G₂])
 
-function Base.show(io::IO, G::DirectProductLieGroup)
+function Base.show(io::IO, G::DirectProductLieGroup{F}) where F
     println(io, "DirectProductLieGroup $(name(G))")
-    println(io, " Lie algebra:")
-    show(io, algebra(G); offset = 2)
+    println(io, " number type (or field): $(F)")
+    print(io, " Lie algebra:")
 end
