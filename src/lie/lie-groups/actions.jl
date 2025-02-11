@@ -6,7 +6,7 @@ export MatrixGroupAction,
     ⊠,
     are_commutative
 
-struct MatrixGroupAction{T <: AbstractReductiveGroup, S <: Variable} <: AbstractGroupAction{T}
+struct MatrixGroupAction{T <: AbstractGroup, S <: Variable} <: AbstractAction{T}
     group::T
     vars::Vector{Vector{S}}
 end
@@ -14,11 +14,11 @@ end
 MatrixGroupAction(
     G::T,
     vectors::AbstractVector{<:AbstractVector{S}}
-) where {T <: AbstractReductiveGroup, S <: Variable} = MatrixGroupAction{T, S}(G, collect(collect(v) for v in vectors))
+) where {T <: AbstractGroup, S <: Variable} = MatrixGroupAction{T, S}(G, collect(collect(v) for v in vectors))
 
 group(a::MatrixGroupAction) = a.group
 action_vectors(a::MatrixGroupAction) = a.vars
-space(a::MatrixGroupAction{<:AbstractReductiveGroup{F}}) where F = VariableSpace{F}(vcat(action_vectors(a)...))
+space(a::MatrixGroupAction{<:AbstractGroup{T, F}}) where {T, F} = VariableSpace{F}(vcat(action_vectors(a)...))
 
 function Base.show(io::IO, a::MatrixGroupAction)
     println(io, "MatrixGroupAction of $(name(group(a)))")
@@ -27,7 +27,7 @@ function Base.show(io::IO, a::MatrixGroupAction)
 end
 
 
-struct ScalingLieGroupAction{T <: ScalingLieGroup, S <: Variable} <: AbstractGroupAction{T}
+struct ScalingLieGroupAction{T <: ScalingLieGroup, S <: Variable} <: AbstractAction{T}
     group::T
     vars::Vector{S}
 end
@@ -71,20 +71,22 @@ function Base.show(io::IO, a::ScalingLieGroupAction)
 end
 
 
-struct DirectProductLieGroupAction{
-    T <: DirectProductLieGroup,
-    S <: AbstractGroupAction{<:AbstractReductiveLieGroup}
-} <: AbstractGroupAction{T}
+struct DirectProductGroupAction{
+    T <: AbstractDirectProductGroup,
+    S₁ <: AbstractAction{<:AbstractGroup{Lie}},
+    S₂ <: AbstractAction{<:AbstractGroup{Finite}}
+} <: AbstractAction{T}
     group::T
-    actions::Vector{S}
+    lie_action::S₁
+    finite_action::S₂
 end
 
-group(a::DirectProductLieGroupAction) = a.group
-actions(a::DirectProductLieGroupAction) = a.actions
-space(a::DirectProductLieGroupAction) = +([space(a) for a in actions(a)]...)
+group(a::DirectProductGroupAction) = a.group
+lie_action(a::DirectProductGroupAction) = a.lie_action
+finite_action(a::DirectProductGroupAction) = a.finite_action
 
-function Base.show(io::IO, a::DirectProductLieGroupAction)
-    println(io, "DirectProductLieGroupAction of $(name(group(a)))")
+function Base.show(io::IO, a::DirectProductGroupAction)
+    println(io, "DirectProductGroupAction of $(name(group(a)))")
     print(io, " action:")
     for action in actions(a)
         println(io)
@@ -96,7 +98,7 @@ function act(
     g::GroupElem{T},
     a::MatrixGroupAction{T},
     f::AbstractPolynomialLike
-) where T <: AbstractReductiveGroup
+) where T <: AbstractGroup
     sbs = vcat([matrix(g)*v for v in action_vectors(a)]...)
     vars = vcat(action_vectors(a)...)
     return subs(f, vars => sbs)
@@ -106,20 +108,20 @@ act(
     g::GroupElem{T},
     a::ScalingLieGroupAction{T},
     f::AbstractPolynomialLike
-) where T <: AbstractReductiveGroup = act(g, MatrixGroupAction(a), f)
+) where T <: AbstractGroup = act(g, MatrixGroupAction(a), f)
 
 function act(
     g::DirectProductGroupElem{T},
-    a::AbstractGroupAction{T},
+    a::AbstractAction{T},
     f::AbstractPolynomialLike
 ) where T <: AbstractDirectProductGroup
     
 end
 
 function are_commutative(
-    a₁::AbstractGroupAction{<:AbstractReductiveGroup{F}},
-    a₂::AbstractGroupAction{<:AbstractReductiveGroup{F}}
-) where F
+    a₁::AbstractAction{<:AbstractGroup{T₁, F}},
+    a₂::AbstractAction{<:AbstractGroup{T₂, F}}
+) where {T₁, T₂, F}
     V = space(a₁) + space(a₂)
     v = rand(V)
     g₁, g₂ = rand(group(a₁)), rand(group(a₂))
@@ -129,11 +131,11 @@ function are_commutative(
 end
 
 function ⊠(
-    a₁::AbstractGroupAction{<:AbstractReductiveLieGroup{F}},
-    a₂::AbstractGroupAction{<:AbstractReductiveLieGroup{F}}
-) where F
+    a₁::AbstractAction{<:AbstractGroup{T₁, F}},
+    a₂::AbstractAction{<:AbstractGroup{T₂, F}}
+) where {T₁, T₂, F}
     if are_commutative(a₁, a₂)
-        return DirectProductLieGroupAction(group(a₁) × group(a₂), [a₁, a₂])
+        return DirectProductGroupAction(group(a₁) × group(a₂), [a₁, a₂])
     else
         error("Actions are not commutative, cannot form direct product!")
     end

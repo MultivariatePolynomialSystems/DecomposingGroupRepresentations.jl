@@ -1,7 +1,7 @@
 export GroupElem,
     matrix
 
-struct GroupElem{T <: AbstractReductiveGroup, S <: AbstractMatrix} <: AbstractGroupElem
+struct GroupElem{T <: AbstractGroup, S <: AbstractMatrix} <: AbstractGroupElem
     group::T
     matrix::S
 end
@@ -31,5 +31,5 @@ end
 
 group(g::DirectProductGroupElem) = g.group
 elements(g::DirectProductGroupElem) = g.elements
-Base.rand(G::DirectProductLieGroup) = DirectProductGroupElem(G, [rand(Gᵢ) for Gᵢ in groups(G)])
+Base.rand(G::DirectProductGroup) = DirectProductGroupElem(G, [rand(Gᵢ) for Gᵢ in groups(G)])
 

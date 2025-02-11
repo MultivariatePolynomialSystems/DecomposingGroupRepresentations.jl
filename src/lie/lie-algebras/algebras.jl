@@ -1,7 +1,7 @@
 export LieAlgebra
 
 
-struct ScalingLieAlgebra{F} <: AbstractReductiveLieAlgebra{F}
+struct ScalingLieAlgebra{F} <: AbstractLieAlgebra{F}
     name::String
     exps::SparseMatrixCSC{Int, Int} # every row is a vector u = [u₁,...,uₖ] which acts on vars by λᵘ
 end
@@ -81,7 +81,7 @@ Base.convert(
 )
 
 
-struct LieAlgebra{F, W} <: AbstractReductiveLieAlgebra{F}
+struct LieAlgebra{F, W} <: AbstractLieAlgebra{F}
     name::String
     basis::ChevalleyBasis{F}
     weight_structure::WeightStructure{F, MatrixVectorSpace{F}, W}
@@ -147,13 +147,13 @@ nweights(alg::LieAlgebra) = nweights(alg.weight_structure)
 hw_spaces(alg::LieAlgebra) = alg.hw_spaces
 
 
-struct SumLieAlgebra{F} <: AbstractReductiveLieAlgebra{F}
+struct SumLieAlgebra{F} <: AbstractLieAlgebra{F}
     name::String
-    algs::Vector{AbstractReductiveLieAlgebra{F}}
+    algs::Vector{AbstractLieAlgebra{F}}
 end
 
 SumLieAlgebra(
-    algs::Vector{AbstractReductiveLieAlgebra}
+    algs::Vector{AbstractLieAlgebra}
 ) = SumLieAlgebra(join([name(alg) for alg in algs], " ⊕ "), algs)
 
 name(alg::SumLieAlgebra) = alg.name
@@ -169,13 +169,13 @@ function Base.show(io::IO, alg::SumLieAlgebra{F}; offset::Int=0) where F
 end
 
 ⊕(
-    alg₁::AbstractReductiveLieAlgebra{F},
-    alg₂::AbstractReductiveLieAlgebra{F}
+    alg₁::AbstractLieAlgebra{F},
+    alg₂::AbstractLieAlgebra{F}
 ) where F = SumLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [alg₁, alg₂])
 
 ⊕(
     alg₁::SumLieAlgebra{F},
-    alg₂::AbstractReductiveLieAlgebra{F}
+    alg₂::AbstractLieAlgebra{F}
 ) where F = SumLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [algebras(alg₁)..., alg₂])
 
 function get_elements(alg::SumLieAlgebra, sym::Symbol)

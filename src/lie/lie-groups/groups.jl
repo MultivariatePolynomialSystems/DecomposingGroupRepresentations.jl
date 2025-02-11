@@ -1,7 +1,7 @@
-export LieGroup, DirectProductLieGroup, ×
+export LieGroup, DirectProductGroup, ×
 
 
-struct ScalingLieGroup{F} <: AbstractReductiveLieGroup{F}
+struct ScalingLieGroup{F} <: AbstractGroup{Lie, F}
     name::String
     algebra::ScalingLieAlgebra{F}
 end
@@ -13,7 +13,7 @@ algebra(G::ScalingLieGroup) = G.algebra
 exponents(G::ScalingLieGroup) = exponents(algebra(G))
 
 
-struct LieGroup{F, T <: LieAlgebra{F}} <: AbstractReductiveLieGroup{F}
+struct LieGroup{F, T <: LieAlgebra{F}} <: AbstractGroup{Lie, F}
     name::String
     algebra::T
 end
@@ -40,25 +40,34 @@ function Base.show(io::IO, G::LieGroup{F}) where F
 end
 
 
-struct DirectProductLieGroup{F, T <: AbstractReductiveLieGroup{F}} <: AbstractDirectProductGroup{F}
+struct DirectProductGroup{T, F, S <: AbstractGroup{T, F}} <: AbstractDirectProductGroup{T, F}
     name::String
-    groups::Vector{T}
+    groups::Vector{S}
 end
 
-DirectProductLieGroup(
-    groups::Vector{AbstractReductiveLieGroup}
-) = DirectProductLieGroup(join([name(G) for G in groups], " × "), groups)
+DirectProductGroup(
+    groups::Vector{<:AbstractGroup{Lie}}
+) = DirectProductGroup(join([name(G) for G in groups], " × "), groups)
 
-name(G::DirectProductLieGroup) = G.name
-groups(G::DirectProductLieGroup) = G.groups
-algebra(G::DirectProductLieGroup) = SumLieAlgebra([algebra(Gᵢ) for Gᵢ in groups(G)])
+name(G::DirectProductGroup) = G.name
+groups(G::DirectProductGroup) = G.groups
+algebra(G::DirectProductGroup) = SumLieAlgebra([algebra(Gᵢ) for Gᵢ in groups(G)])
 ×(
-    G₁::AbstractReductiveLieGroup{F},
-    G₂::AbstractReductiveLieGroup{F}
-) where F = DirectProductLieGroup("$(name(G₁)) × $(name(G₂))", [G₁, G₂])
+    G₁::AbstractGroup{Lie, F},
+    G₂::AbstractGroup{Lie, F}
+) where F = DirectProductGroup("$(name(G₁)) × $(name(G₂))", [G₁, G₂])
 
-function Base.show(io::IO, G::DirectProductLieGroup{F}) where F
+function Base.show(io::IO, G::DirectProductGroup{F}) where F
     println(io, "DirectProductLieGroup $(name(G))")
     println(io, " number type (or field): $(F)")
     print(io, " Lie algebra:")
+end
+
+
+struct DirectProductMixedGroup{
+    F, T <: AbstractGroup{Lie, F}, S <: AbstractGroup{Finite, F}
+} <: AbstractDirectProductGroup{Mixed, F}
+    name::String
+    lie_part::T
+    finite_part::S
 end

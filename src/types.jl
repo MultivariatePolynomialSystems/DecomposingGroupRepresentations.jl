@@ -1,31 +1,29 @@
-abstract type AbstractReductiveGroup{F} end
+@enum GroupType Finite Lie Mixed
 
-abstract type AbstractReductiveLieGroup{F} <: AbstractReductiveGroup{F} end
+abstract type AbstractGroup{T, F} end
 
-lie_algebra(::AbstractReductiveLieGroup) = error("Not implemented")
+lie_algebra(::AbstractGroup{Lie}) = error("Not implemented")
 
 
-abstract type AbstractFiniteGroup{F} <: AbstractReductiveGroup{F} end
-
-abstract type AbstractDirectProductGroup{F} <: AbstractReductiveGroup{F} end
+abstract type AbstractDirectProductGroup{T, F} <: AbstractGroup{T, F} end
 
 abstract type AbstractGroupElem end
 
 group(::AbstractGroupElem) = error("Not implemented")
 
 
-abstract type AbstractGroupAction{T <: AbstractReductiveGroup} end
+abstract type AbstractAction{T <: AbstractGroup} end
 
-group(::AbstractGroupAction) = error("Not implemented")
+group(::AbstractAction) = error("Not implemented")
 
 
-abstract type AbstractReductiveLieAlgebra{F} end
+abstract type AbstractLieAlgebra{F} end
 
-name(::AbstractReductiveLieAlgebra) = error("Not implemented")
-basis(::AbstractReductiveLieAlgebra) = error("Not implemented")
-chevalley_basis(::AbstractReductiveLieAlgebra) = error("Not implemented")
-dim(::AbstractReductiveLieAlgebra) = error("Not implemented")
-rank(::AbstractReductiveLieAlgebra) = error("Not implemented")
+name(::AbstractLieAlgebra) = error("Not implemented")
+basis(::AbstractLieAlgebra) = error("Not implemented")
+chevalley_basis(::AbstractLieAlgebra) = error("Not implemented")
+dim(::AbstractLieAlgebra) = error("Not implemented")
+rank(::AbstractLieAlgebra) = error("Not implemented")
 
 
 abstract type AbstractLieAlgebraElem end
@@ -56,7 +54,7 @@ abstract type AbstractTensorProduct{F} <: AbstractVectorSpace{F} end
 spaces(::AbstractTensorProduct) = error("Not implemented")
 
 
-abstract type AbstractRepresentation{F, T<:AbstractReductiveGroup{F}, S<:AbstractVectorSpace{F}} end
+abstract type AbstractRepresentation{T<:AbstractGroup, S<:AbstractVectorSpace} end
 
 group(::AbstractRepresentation) = error("Not implemented")
 action(::AbstractRepresentation) = error("Not implemented")

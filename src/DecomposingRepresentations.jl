@@ -3,7 +3,7 @@ module DecomposingRepresentations
 using SparseArrays: SparseMatrixCSC, sparse, findnz
 using LinearAlgebra: Diagonal
 
-using DynamicPolynomials: @polyvar, Variable, Monomial, Polynomial, subs, Commutative, CreationOrder, Graded, LexOrder
+using DynamicPolynomials: @polyvar, Variable, Monomial, Polynomial, subs, Commutative, CreationOrder, Graded, LexOrder, AbstractPolynomialLike
 export @polyvar, Variable, Monomial, Polynomials, Commutative, CreationOrder, Graded, LexOrder
 
 include("utils/basic.jl")
