@@ -6,19 +6,19 @@ export MatrixGroupAction,
     ⊠,
     are_commutative
 
-struct MatrixGroupAction{T <: AbstractGroup, S <: Variable} <: AbstractAction{T}
-    group::T
-    vars::Vector{Vector{S}}
+struct MatrixGroupAction{T<:GroupType, F, S<:AbstractGroup{T,F}, V<:Variable} <: AbstractAction{T, F}
+    group::S
+    vars::Vector{Vector{V}}
 end
 
 MatrixGroupAction(
-    G::T,
-    vectors::AbstractVector{<:AbstractVector{S}}
-) where {T <: AbstractGroup, S <: Variable} = MatrixGroupAction{T, S}(G, collect(collect(v) for v in vectors))
+    G::S,
+    vectors::AbstractVector{<:AbstractVector{V}}
+) where {T<:GroupType, F, S <: AbstractGroup{T, F}, V <: Variable} = MatrixGroupAction{T, F, S, V}(G, collect(collect(v) for v in vectors))
 
 group(a::MatrixGroupAction) = a.group
 action_vectors(a::MatrixGroupAction) = a.vars
-space(a::MatrixGroupAction{<:AbstractGroup{T, F}}) where {T, F} = VariableSpace{F}(vcat(action_vectors(a)...))
+space(a::MatrixGroupAction{T, F}) where {T, F} = VariableSpace{F}(vcat(action_vectors(a)...))
 
 function Base.show(io::IO, a::MatrixGroupAction)
     println(io, "MatrixGroupAction of $(name(group(a)))")
@@ -27,14 +27,14 @@ function Base.show(io::IO, a::MatrixGroupAction)
 end
 
 
-struct ScalingLieGroupAction{T <: ScalingLieGroup, S <: Variable} <: AbstractAction{T}
+struct ScalingLieGroupAction{F, T <: ScalingLieGroup{F}, S <: Variable} <: AbstractAction{Lie, F}
     group::T
     vars::Vector{S}
 end
 
 group(a::ScalingLieGroupAction) = a.group
 action_vector(a::ScalingLieGroupAction) = a.vars
-space(a::ScalingLieGroupAction{ScalingLieGroup{F}}) where F = VariableSpace{F}(action_vector(a))
+space(a::ScalingLieGroupAction{F}) where F = VariableSpace{F}(action_vector(a))
 
 ScalingLieGroupAction(v::Vector{<:Variable}) = ScalingLieGroupAction(ScalingLieGroup{ComplexF64}(length(v)), v)
 MatrixGroupAction(a::ScalingLieGroupAction) = MatrixGroupAction(group(a), [action_vector(a)])
@@ -71,34 +71,41 @@ function Base.show(io::IO, a::ScalingLieGroupAction)
 end
 
 
-struct DirectProductGroupAction{
-    T <: AbstractDirectProductGroup,
-    S₁ <: AbstractAction{<:AbstractGroup{Lie}},
-    S₂ <: AbstractAction{<:AbstractGroup{Finite}}
-} <: AbstractAction{T}
-    group::T
-    lie_action::S₁
-    finite_action::S₂
+struct DirectProductGroupAction{T<:GroupType, F, S<:AbstractDirectProductGroup{T, F}} <: AbstractAction{T, F}
+    group::S
+    lie_actions::Vector{AbstractAction{Lie, F}}
+    finite_actions::Vector{AbstractAction{Finite, F}}
 end
 
+DirectProductGroupAction(
+    G::T,
+    lie_actions::AbstractVector{S₁}
+) where {
+    F,
+    T <: AbstractDirectProductGroup{Lie, F},
+    S₁ <: AbstractAction{Lie, F}
+} = DirectProductGroupAction{Lie, F, T}(G, lie_actions, [])
+
 group(a::DirectProductGroupAction) = a.group
-lie_action(a::DirectProductGroupAction) = a.lie_action
-finite_action(a::DirectProductGroupAction) = a.finite_action
+lie_actions(a::DirectProductGroupAction) = a.lie_actions
+finite_actions(a::DirectProductGroupAction) = a.finite_actions
+actions(a::DirectProductGroupAction) = vcat(lie_actions(a), finite_actions(a))
+space(a::DirectProductGroupAction) = +([space(a) for a in actions(a)]...)
 
 function Base.show(io::IO, a::DirectProductGroupAction)
     println(io, "DirectProductGroupAction of $(name(group(a)))")
-    print(io, " action:")
-    for action in actions(a)
-        println(io)
-        show_action(io, action; offset=2, show_name=true)
-    end
+    print(io, " lie actions:")
+    # for action in lie_actions(a)
+    #     println(io)
+    #     show_action(io, action; offset=2, show_name=true)
+    # end
 end
 
 function act(
-    g::GroupElem{T},
-    a::MatrixGroupAction{T},
+    g::GroupElem{S},
+    a::MatrixGroupAction{T, F, S},
     f::AbstractPolynomialLike
-) where T <: AbstractGroup
+) where {T<:GroupType, F, S<:AbstractGroup{T, F}}
     sbs = vcat([matrix(g)*v for v in action_vectors(a)]...)
     vars = vcat(action_vectors(a)...)
     return subs(f, vars => sbs)
@@ -106,22 +113,26 @@ end
 
 act(
     g::GroupElem{T},
-    a::ScalingLieGroupAction{T},
+    a::ScalingLieGroupAction{F, T},
     f::AbstractPolynomialLike
-) where T <: AbstractGroup = act(g, MatrixGroupAction(a), f)
+) where {F, T <: ScalingLieGroup{F}} = act(g, MatrixGroupAction(a), f)
 
 function act(
-    g::DirectProductGroupElem{T},
-    a::AbstractAction{T},
+    g::DirectProductGroupElem{S},
+    a::DirectProductGroupAction{T, F, S},
     f::AbstractPolynomialLike
-) where T <: AbstractDirectProductGroup
-    
+) where {T<:GroupType, F, S<:AbstractDirectProductGroup{T, F}}
+    fₐ = f
+    for (gᵢ, aᵢ) in zip(elements(g), actions(a))
+        fₐ = act(gᵢ, aᵢ, fₐ)
+    end
+    return fₐ
 end
 
 function are_commutative(
-    a₁::AbstractAction{<:AbstractGroup{T₁, F}},
-    a₂::AbstractAction{<:AbstractGroup{T₂, F}}
-) where {T₁, T₂, F}
+    a₁::AbstractAction{T₁, F},
+    a₂::AbstractAction{T₂, F}
+) where {T₁<:GroupType, T₂<:GroupType, F}
     V = space(a₁) + space(a₂)
     v = rand(V)
     g₁, g₂ = rand(group(a₁)), rand(group(a₂))
@@ -131,12 +142,17 @@ function are_commutative(
 end
 
 function ⊠(
-    a₁::AbstractAction{<:AbstractGroup{T₁, F}},
-    a₂::AbstractAction{<:AbstractGroup{T₂, F}}
-) where {T₁, T₂, F}
-    if are_commutative(a₁, a₂)
-        return DirectProductGroupAction(group(a₁) × group(a₂), [a₁, a₂])
-    else
-        error("Actions are not commutative, cannot form direct product!")
-    end
+    a₁::AbstractAction{Lie},
+    a₂::AbstractAction{Lie}
+)
+    @assert are_commutative(a₁, a₂)
+    return DirectProductGroupAction(group(a₁) × group(a₂), [a₁, a₂])
+end
+
+function ⊠(
+    a₁::DirectProductGroupAction{Lie},
+    a₂::AbstractAction{Lie}
+)
+    @assert are_commutative(a₁, a₂)
+    return DirectProductGroupAction(group(a₁) × group(a₂), vcat(lie_actions(a₁), [a₂]))
 end

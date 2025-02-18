@@ -40,7 +40,7 @@ function Base.show(io::IO, G::LieGroup{F}) where F
 end
 
 
-struct DirectProductGroup{T, F, S <: AbstractGroup{T, F}} <: AbstractDirectProductGroup{T, F}
+struct DirectProductGroup{T<:GroupType, F, S<:AbstractGroup{T, F}} <: AbstractDirectProductGroup{T, F}
     name::String
     groups::Vector{S}
 end
@@ -56,6 +56,10 @@ algebra(G::DirectProductGroup) = SumLieAlgebra([algebra(Gᵢ) for Gᵢ in groups
     G₁::AbstractGroup{Lie, F},
     G₂::AbstractGroup{Lie, F}
 ) where F = DirectProductGroup("$(name(G₁)) × $(name(G₂))", [G₁, G₂])
+×(
+    G₁::DirectProductGroup{Lie, F},
+    G₂::AbstractGroup{Lie, F}
+) where F = DirectProductGroup("$(name(G₁)) × $(name(G₂))", vcat(groups(G₁), [G₂]))
 
 function Base.show(io::IO, G::DirectProductGroup{F}) where F
     println(io, "DirectProductLieGroup $(name(G))")

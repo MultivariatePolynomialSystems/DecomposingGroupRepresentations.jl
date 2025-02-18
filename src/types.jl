@@ -1,18 +1,24 @@
-@enum GroupType Finite Lie Mixed
+export GroupType, Lie, Finite, Mixed
+export AbstractGroup, AbstractDirectProductGroup, AbstractGroupElem, AbstractAction
 
-abstract type AbstractGroup{T, F} end
+abstract type GroupType end
+struct Lie <: GroupType end
+struct Finite <: GroupType end
+struct Mixed <: GroupType end
+
+abstract type AbstractGroup{T<:GroupType, F} end
 
 lie_algebra(::AbstractGroup{Lie}) = error("Not implemented")
 
 
-abstract type AbstractDirectProductGroup{T, F} <: AbstractGroup{T, F} end
+abstract type AbstractDirectProductGroup{T<:GroupType, F} <: AbstractGroup{T, F} end
 
 abstract type AbstractGroupElem end
 
 group(::AbstractGroupElem) = error("Not implemented")
 
 
-abstract type AbstractAction{T <: AbstractGroup} end
+abstract type AbstractAction{T<:GroupType, F} end
 
 group(::AbstractAction) = error("Not implemented")
 
