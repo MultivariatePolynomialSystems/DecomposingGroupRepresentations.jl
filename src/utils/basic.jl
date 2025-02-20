@@ -25,3 +25,8 @@ function q2R(q)
 end
 
 rand_rotation(T::DataType) = q2R(rand(T, 4))
+
+function num_mons(n::Integer, d::Integer; upto::Bool=false)
+    upto && return n > 0 ? binomial(Int(n + d), Int(d)) : 0
+    return n > 0 ? binomial(Int(n - 1 + d), Int(d)) : 0
+end

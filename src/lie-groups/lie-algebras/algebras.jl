@@ -45,6 +45,7 @@ end
 
 Base.:+(r::Root, w::Weight) = Weight(r.root + w.weight)
 Base.:+(w::Weight, r::Root) = Weight(w.weight + r.root)
+Base.:+(r₁::Root, r₂::Root) = Root(r₁.root + r₂.root)
 Base.convert(::Type{Root}, v::Vector{Int}) = Root(v)
 
 struct ChevalleyBasis{T}

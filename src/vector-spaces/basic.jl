@@ -1,5 +1,6 @@
 export MatrixVectorSpace,
-    VectorSpace
+    VectorSpace,
+    VariableSpace
 
 
 struct MatrixVectorSpace{F} <: AbstractVectorSpace{F}
@@ -21,6 +22,12 @@ end
 
 basis(V::VariableSpace) = V.vars
 dim(V::VariableSpace) = length(basis(V))
+
+function Base.show(io::IO, V::VariableSpace{F}; indent::Int=0) where F
+    println(io, " "^indent, "VariableSpace with $(dim(V)) variables")
+    println(io, " "^indent, " variables: ", join(map(repr, V.vars), ", "))
+    print(io, " "^indent, " number type (or field): $(F)")
+end
 
 Base.:+(
     Vs::VariableSpace{F}...

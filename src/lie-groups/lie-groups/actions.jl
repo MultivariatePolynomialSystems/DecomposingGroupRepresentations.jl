@@ -3,10 +3,10 @@ export MatrixGroupAction,
     action_vectors,
     ScalingLieGroupAction,
     action_vector,
-    ⊠,
+    ×,
     are_commutative
 
-struct MatrixGroupAction{T<:GroupType, F, S<:AbstractGroup{T,F}, V<:Variable} <: AbstractAction{T, F}
+struct MatrixGroupAction{T<:GroupType, F, S<:AbstractGroup{T,F}, V<:Variable} <: AbstractGroupAction{T, F}
     group::S
     vars::Vector{Vector{V}}
 end
@@ -27,7 +27,8 @@ function Base.show(io::IO, a::MatrixGroupAction)
 end
 
 
-struct ScalingLieGroupAction{F, T <: ScalingLieGroup{F}, S <: Variable} <: AbstractAction{Lie, F}
+# TODO: remove and leave MatrixGroupAction?
+struct ScalingLieGroupAction{F, T <: ScalingLieGroup{F}, S <: Variable} <: AbstractGroupAction{Lie, F}
     group::T
     vars::Vector{S}
 end
@@ -71,10 +72,10 @@ function Base.show(io::IO, a::ScalingLieGroupAction)
 end
 
 
-struct DirectProductGroupAction{T<:GroupType, F, S<:AbstractDirectProductGroup{T, F}} <: AbstractAction{T, F}
+struct DirectProductGroupAction{T<:GroupType, F, S<:AbstractDirectProductGroup{T, F}} <: AbstractGroupAction{T, F}
     group::S
-    lie_actions::Vector{AbstractAction{Lie, F}}
-    finite_actions::Vector{AbstractAction{Finite, F}}
+    lie_actions::Vector{AbstractGroupAction{Lie, F}}
+    finite_actions::Vector{AbstractGroupAction{Finite, F}}
 end
 
 DirectProductGroupAction(
@@ -83,7 +84,7 @@ DirectProductGroupAction(
 ) where {
     F,
     T <: AbstractDirectProductGroup{Lie, F},
-    S₁ <: AbstractAction{Lie, F}
+    S₁ <: AbstractGroupAction{Lie, F}
 } = DirectProductGroupAction{Lie, F, T}(G, lie_actions, [])
 
 group(a::DirectProductGroupAction) = a.group
@@ -130,8 +131,8 @@ function act(
 end
 
 function are_commutative(
-    a₁::AbstractAction{T₁, F},
-    a₂::AbstractAction{T₂, F}
+    a₁::AbstractGroupAction{T₁, F},
+    a₂::AbstractGroupAction{T₂, F}
 ) where {T₁<:GroupType, T₂<:GroupType, F}
     V = space(a₁) + space(a₂)
     v = rand(V)
@@ -141,17 +142,17 @@ function are_commutative(
     return v₁ ≈ v₂
 end
 
-function ⊠(
-    a₁::AbstractAction{Lie},
-    a₂::AbstractAction{Lie}
+function ×(
+    a₁::AbstractGroupAction{Lie},
+    a₂::AbstractGroupAction{Lie}
 )
     @assert are_commutative(a₁, a₂)
     return DirectProductGroupAction(group(a₁) × group(a₂), [a₁, a₂])
 end
 
-function ⊠(
+function ×(
     a₁::DirectProductGroupAction{Lie},
-    a₂::AbstractAction{Lie}
+    a₂::AbstractGroupAction{Lie}
 )
     @assert are_commutative(a₁, a₂)
     return DirectProductGroupAction(group(a₁) × group(a₂), vcat(lie_actions(a₁), [a₂]))

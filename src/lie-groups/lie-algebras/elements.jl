@@ -2,9 +2,9 @@ export LieAlgebraElem,
     RootElem
 
 
-struct LieAlgebraElem{T<:AbstractLieAlgebra, S} <: AbstractLieAlgebraElem
+struct LieAlgebraElem{F, T<:AbstractLieAlgebra{F}} <: AbstractLieAlgebraElem
     alg::T
-    coeffs::Vector{S}
+    coeffs::Vector{F}
 end
 
 algebra(elem::LieAlgebraElem) = elem.alg
@@ -65,5 +65,5 @@ root(elem::RootElem) = elem.root
 act(
     elem::RootElem,
     wv::WeightVector,
-    a::AbstractAction
+    a::AbstractGroupAction
 ) = WeightVector(root(elem)+weight(wv), act(elem.elem, vector(wv), a))

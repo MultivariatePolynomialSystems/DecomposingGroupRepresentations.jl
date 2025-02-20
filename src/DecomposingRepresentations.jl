@@ -9,14 +9,20 @@ export @polyvar, Variable, Monomial, Polynomials, Commutative, CreationOrder, Gr
 include("utils/basic.jl")
 include("types.jl")
 
-include("reprs/spaces.jl")
+include("vector-spaces/basic.jl")
+include("vector-spaces/composite.jl")
 
-include("lie/lie-algebras/weights.jl")
-include("lie/lie-algebras/algebras.jl")
-include("lie/lie-algebras/elements.jl")
+include("lie-groups/lie-algebras/weights.jl")
+include("lie-groups/lie-algebras/algebras.jl")
+include("lie-groups/lie-algebras/elements.jl")
 
-include("lie/lie-groups/groups.jl")
-include("lie/lie-groups/elements.jl")
-include("lie/lie-groups/actions.jl")
+include("lie-groups/lie-groups/groups.jl")
+include("lie-groups/lie-groups/elements.jl")
+include("lie-groups/lie-groups/actions.jl")
+
+include("vector-spaces/hw-module.jl")
+include("representations/irred-reprs.jl")
+include("representations/isotypic-comps.jl")
+include("representations/reprs.jl")
 
 end

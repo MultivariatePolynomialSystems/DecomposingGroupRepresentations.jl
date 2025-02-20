@@ -10,8 +10,8 @@ end
 
 # Base.convert(::Type{Weight{T}}, v::Vector{T}) where T = Weight(v)
 
-struct WeightVector{T, W}
-    weight::Weight{W}
+struct WeightVector{W, T}
+    weight::Weight{W} # TODO: change to W
     vector::T
 end
 

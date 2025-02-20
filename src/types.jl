@@ -1,5 +1,5 @@
 export GroupType, Lie, Finite, Mixed
-export AbstractGroup, AbstractDirectProductGroup, AbstractGroupElem, AbstractAction
+export AbstractGroup, AbstractDirectProductGroup, AbstractGroupElem, AbstractGroupAction
 
 abstract type GroupType end
 struct Lie <: GroupType end
@@ -18,9 +18,9 @@ abstract type AbstractGroupElem end
 group(::AbstractGroupElem) = error("Not implemented")
 
 
-abstract type AbstractAction{T<:GroupType, F} end
+abstract type AbstractGroupAction{T<:GroupType, F} end
 
-group(::AbstractAction) = error("Not implemented")
+group(::AbstractGroupAction) = error("Not implemented")
 
 
 abstract type AbstractLieAlgebra{F} end
@@ -60,11 +60,12 @@ abstract type AbstractTensorProduct{F} <: AbstractVectorSpace{F} end
 spaces(::AbstractTensorProduct) = error("Not implemented")
 
 
-abstract type AbstractRepresentation{T<:AbstractGroup, S<:AbstractVectorSpace} end
+abstract type AbstractGroupRepresentation{T<:GroupType, S<:AbstractVectorSpace} end
 
-group(::AbstractRepresentation) = error("Not implemented")
-action(::AbstractRepresentation) = error("Not implemented")
-space(::AbstractRepresentation) = error("Not implemented")
-degree(ρ::AbstractRepresentation) = dim(space(ρ))
-irreducibles(::AbstractRepresentation) = error("Not implemented")
-isotypic_components(::AbstractRepresentation) = error("Not implemented")
+action(::AbstractGroupRepresentation) = error("Not implemented")
+group(ρ::AbstractGroupRepresentation) = group(action(ρ))
+space(::AbstractGroupRepresentation) = error("Not implemented")
+space_basis(ρ::AbstractGroupRepresentation) = basis(space(ρ))
+dim(ρ::AbstractGroupRepresentation) = dim(space(ρ))
+irreducibles(::AbstractGroupRepresentation) = error("Not implemented")
+isotypic_components(::AbstractGroupRepresentation) = error("Not implemented")
