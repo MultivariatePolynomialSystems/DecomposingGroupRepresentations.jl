@@ -1,4 +1,7 @@
-export LieGroup, DirectProductGroup, ×
+export LieGroup,
+    ScalingLieGroup,
+    DirectProductGroup,
+    ×
 
 
 struct ScalingLieGroup{F} <: AbstractGroup{Lie, F}
@@ -11,6 +14,7 @@ ScalingLieGroup{F}(size::Int) where F = ScalingLieGroup("ℂˣ", ScalingLieAlgeb
 name(G::ScalingLieGroup) = G.name
 algebra(G::ScalingLieGroup) = G.algebra
 exponents(G::ScalingLieGroup) = exponents(algebra(G))
+weight(G::ScalingLieGroup, i::Integer) = Weight(Vector(exponents(G)[:, i]))
 
 
 struct LieGroup{F, T <: LieAlgebra{F}} <: AbstractGroup{Lie, F}
@@ -75,3 +79,5 @@ struct DirectProductMixedGroup{
     lie_part::T
     finite_part::S
 end
+
+zero_weight(G::AbstractGroup{Lie}) = zero_weight(algebra(G))

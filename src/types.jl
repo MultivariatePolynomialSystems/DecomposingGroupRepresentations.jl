@@ -1,5 +1,7 @@
 export GroupType, Lie, Finite, Mixed
+export algebra, group
 export AbstractGroup, AbstractDirectProductGroup, AbstractGroupElem, AbstractGroupAction
+export basis
 
 abstract type GroupType end
 struct Lie <: GroupType end
@@ -8,7 +10,7 @@ struct Mixed <: GroupType end
 
 abstract type AbstractGroup{T<:GroupType, F} end
 
-lie_algebra(::AbstractGroup{Lie}) = error("Not implemented")
+algebra(::AbstractGroup{Lie}) = error("Not implemented")
 
 
 abstract type AbstractDirectProductGroup{T<:GroupType, F} <: AbstractGroup{T, F} end
@@ -21,6 +23,7 @@ group(::AbstractGroupElem) = error("Not implemented")
 abstract type AbstractGroupAction{T<:GroupType, F} end
 
 group(::AbstractGroupAction) = error("Not implemented")
+algebra(a::AbstractGroupAction{Lie}) = algebra(group(a))
 
 
 abstract type AbstractLieAlgebra{F} end
@@ -46,7 +49,7 @@ dim(::AbstractVectorSpace) = error("Not implemented")
 
 abstract type AbstractDirectSum{F} <: AbstractVectorSpace{F} end
 
-spaces(::AbstractDirectSum) = error("Not implemented")
+summands(::AbstractDirectSum) = error("Not implemented")
 
 
 abstract type AbstractSymmetricPower{F} <: AbstractVectorSpace{F} end

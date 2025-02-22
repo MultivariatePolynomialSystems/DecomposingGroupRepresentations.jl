@@ -1,9 +1,10 @@
 module DecomposingRepresentations
 
 using SparseArrays: SparseMatrixCSC, sparse, findnz
-using LinearAlgebra: Diagonal
+using LinearAlgebra: Diagonal, nullspace, I, dot, norm
 
-using DynamicPolynomials: @polyvar, Variable, Monomial, Polynomial, subs, Commutative, CreationOrder, Graded, LexOrder, AbstractPolynomialLike
+using DynamicPolynomials: @polyvar, Variable, Monomial, Polynomial, Commutative, CreationOrder, Graded, LexOrder, AbstractPolynomialLike
+using DynamicPolynomials: subs, monomials, coefficients, differentiate
 export @polyvar, Variable, Monomial, Polynomials, Commutative, CreationOrder, Graded, LexOrder
 
 include("utils/basic.jl")
@@ -18,7 +19,9 @@ include("lie-groups/lie-algebras/elements.jl")
 
 include("lie-groups/lie-groups/groups.jl")
 include("lie-groups/lie-groups/elements.jl")
-include("lie-groups/lie-groups/actions.jl")
+include("lie-groups/lie-groups/actions/actions.jl")
+include("lie-groups/lie-groups/actions/act.jl")
+include("lie-groups/lie-groups/actions/action-ws.jl")
 
 include("vector-spaces/hw-module.jl")
 include("representations/irred-reprs.jl")

@@ -1,4 +1,8 @@
-export LieAlgebra
+export LieAlgebra,
+    weight_structure,
+    cartan_subalgebra,
+    positive_root_elements,
+    negative_root_elements
 
 
 struct ScalingLieAlgebra{F} <: AbstractLieAlgebra{F}
@@ -13,6 +17,7 @@ dim(alg::ScalingLieAlgebra) = size(alg.exps, 1)
 exponents(alg::ScalingLieAlgebra) = alg.exps
 rank(alg::ScalingLieAlgebra) = dim(alg)
 Base.size(alg::ScalingLieAlgebra) = size(alg.exps, 2)
+weight_type(::ScalingLieAlgebra) = Int
 
 function show_basis(io::IO, alg::ScalingLieAlgebra; offset::Int=0)
     for i in 1:dim(alg)
@@ -47,6 +52,7 @@ Base.:+(r::Root, w::Weight) = Weight(r.root + w.weight)
 Base.:+(w::Weight, r::Root) = Weight(w.weight + r.root)
 Base.:+(r₁::Root, r₂::Root) = Root(r₁.root + r₂.root)
 Base.convert(::Type{Root}, v::Vector{Int}) = Root(v)
+Base.convert(::Type{Vector{Int}}, r::Root) = r.root
 
 struct ChevalleyBasis{T}
     std_basis::Vector{Matrix{T}} # TODO: remove?
@@ -82,14 +88,14 @@ Base.convert(
 )
 
 
-struct LieAlgebra{F, W} <: AbstractLieAlgebra{F}
+struct LieAlgebra{F, W<:Weight} <: AbstractLieAlgebra{F}
     name::String
     basis::ChevalleyBasis{F}
     weight_structure::WeightStructure{F, MatrixVectorSpace{F}, W}
-    hw_spaces::Vector{WeightSpace{F, MatrixVectorSpace{F}, W}}
+    hw_spaces::Vector{WeightSpace{F, MatrixVectorSpace{F}, W}} # TODO: change to WeightStructure?
 end
 
-function so3(F::DataType, W::DataType)
+function so3(field_type::DataType, weight_type::DataType)
     X₁ = [0 0 0; 0 0 -1; 0 1 0]
     X₂ = [0 0 1; 0 0 0; -1 0 0]
     X₃ = [0 -1 0; 1 0 0; 0 0 0]
@@ -101,7 +107,7 @@ function so3(F::DataType, W::DataType)
     ch_basis = ChevalleyBasis([X₁, X₂, X₃], cartan, positive, negative, pos_roots, neg_roots)
     ws = WeightStructure([[-1], [0], [1]], [[1, -im, 0], [0, 0, 1], [1, im, 0]])
     hw_spaces = [WeightSpace([1], [1, im, 0])]
-    return LieAlgebra{F, W}("𝖘𝖔(3)", ch_basis, ws, hw_spaces)
+    return LieAlgebra{field_type, Weight{weight_type}}("𝖘𝖔(3)", ch_basis, ws, hw_spaces)
 end
 so3() = so3(ComplexF64, Int)
 
@@ -118,11 +124,12 @@ name(alg::LieAlgebra) = alg.name
 dim(alg::LieAlgebra) = length(alg.basis.std_basis)
 rank(alg::LieAlgebra) = length(alg.basis.cartan)
 Base.size(alg::LieAlgebra) = size(alg.basis.std_basis[1], 1)
+weight_type(::LieAlgebra{F, Weight{W}}) where {F, W} = W
 
-function Base.show(io::IO, alg::LieAlgebra{F, W}; offset::Int=0) where {F, W}
+function Base.show(io::IO, alg::LieAlgebra{F, Weight{W}}; offset::Int=0) where {F, W}
     println(io, " "^offset, "LieAlgebra $(name(alg))")
     println(io, " "^offset, " number type (or field): $(F)")
-    println(io, " "^offset, " weight type: Vector{$(W)}")
+    println(io, " "^offset, " weight type: $(W)")
     println(io, " "^offset, " dimension: $(dim(alg))")
     print(io, " "^offset, " rank (dimension of Cartan subalgebra): $(rank(alg))")
 end
@@ -154,13 +161,14 @@ struct SumLieAlgebra{F} <: AbstractLieAlgebra{F}
 end
 
 SumLieAlgebra(
-    algs::Vector{AbstractLieAlgebra}
-) = SumLieAlgebra(join([name(alg) for alg in algs], " ⊕ "), algs)
+    algs::Vector{<:AbstractLieAlgebra{F}}
+) where F = SumLieAlgebra(join([name(alg) for alg in algs], " ⊕ "), algs)
 
 name(alg::SumLieAlgebra) = alg.name
 algebras(alg::SumLieAlgebra) = alg.algs
 dim(alg::SumLieAlgebra) = sum([dim(a) for a in algebras(alg)])
 rank(alg::SumLieAlgebra) = sum([rank(a) for a in algebras(alg)])
+weight_type(alg::SumLieAlgebra) = promote_type([weight_type(a) for a in algebras(alg)]...)
 
 function Base.show(io::IO, alg::SumLieAlgebra{F}; offset::Int=0) where F
     println(io, " "^offset, "SumLieAlgebra $(name(alg))")
@@ -180,21 +188,30 @@ end
 ) where F = SumLieAlgebra("$(name(alg₁)) ⊕ $(name(alg₂))", [algebras(alg₁)..., alg₂])
 
 function get_elements(alg::SumLieAlgebra, sym::Symbol)
-    elems = SumLieAlgebraElem[]
+    if sym == :positive_root_elements || sym == :negative_root_elements
+        elems = RootElem[]
+    else
+        elems = SumLieAlgebraElem[]
+    end
     for (i, a) in enumerate(algebras(alg))
         a_elems = eval(sym)(a)
         alg_elems = [zero(alg) for _ in a_elems]
         if sym == :positive_root_elements || sym == :negative_root_elements
-            roots = [[zero(Int, rank(a)) for a in algebras(alg)] for _ in a_elems]
+            roots = [[zeros(Int, rank(a)) for a in algebras(alg)] for _ in a_elems]
         end
         for (j, elem) in enumerate(a_elems)
-            alg_elems[j][i] = elem
             if sym == :positive_root_elements || sym == :negative_root_elements
+                alg_elems[j][i] = element(elem)
                 roots[j][i] = root(elem)
-                alg_elems[j] = RootElem(alg_elems[j], roots[j])
+            else
+                alg_elems[j][i] = elem
             end
         end
-        append!(elems, alg_elems)
+        if sym == :positive_root_elements || sym == :negative_root_elements
+            append!(elems, [RootElem(elem, vcat(root...)) for (elem, root) in zip(alg_elems, roots)])
+        else
+            append!(elems, alg_elems)
+        end
     end
     return elems
 end
@@ -202,3 +219,5 @@ end
 cartan_subalgebra(alg::SumLieAlgebra) = get_elements(alg, :cartan_subalgebra)
 positive_root_elements(alg::SumLieAlgebra) = get_elements(alg, :positive_root_elements)
 negative_root_elements(alg::SumLieAlgebra) = get_elements(alg, :negative_root_elements)
+
+zero_weight(alg::AbstractLieAlgebra) = Weight(zeros(weight_type(alg), rank(alg)))

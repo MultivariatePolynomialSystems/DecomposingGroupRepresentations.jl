@@ -1,10 +1,17 @@
 export LieAlgebraElem,
-    RootElem
+    RootElem,
+    element,
+    root
 
 
 struct LieAlgebraElem{F, T<:AbstractLieAlgebra{F}} <: AbstractLieAlgebraElem
     alg::T
     coeffs::Vector{F}
+end
+
+function LieAlgebraElem(alg::T, coeffs::AbstractVector{F}) where {F, T<:AbstractLieAlgebra{F}}
+    @assert length(coeffs) == dim(alg)
+    return LieAlgebraElem{F, T}(alg, coeffs)
 end
 
 algebra(elem::LieAlgebraElem) = elem.alg
@@ -41,17 +48,17 @@ function as_matrix(elem::LieAlgebraElem)
 end
 
 
-struct SumLieAlgebraElem <: AbstractLieAlgebraElem
-    alg::SumLieAlgebra
-    elems::Vector{LieAlgebraElem}
+struct SumLieAlgebraElem{F} <: AbstractLieAlgebraElem
+    alg::SumLieAlgebra{F}
+    elems::Vector{LieAlgebraElem{F}}
 end
 
 algebra(elem::SumLieAlgebraElem) = elem.alg
-elems(elem::SumLieAlgebraElem) = elem.elems
-Base.randn(alg::SumLieAlgebra) = SumLieAlgebraElem(alg, [randn(a) for a in algebras(alg)])
+elements(elem::SumLieAlgebraElem) = elem.elems
+Base.rand(alg::SumLieAlgebra) = SumLieAlgebraElem(alg, [rand(a) for a in algebras(alg)])
 Base.zero(alg::SumLieAlgebra) = SumLieAlgebraElem(alg, [zero(a) for a in algebras(alg)])
-Base.getindex(elem::SumLieAlgebraElem, i::Int) = elems(elem)[i]
-Base.setindex!(elem::SumLieAlgebraElem, val, i) = (elems(elem)[i] = val)
+Base.getindex(elem::SumLieAlgebraElem, i::Int) = elements(elem)[i]
+Base.setindex!(elem::SumLieAlgebraElem, val, i) = (elements(elem)[i] = val)
 
 
 struct RootElem{T<:AbstractLieAlgebraElem} <: AbstractLieAlgebraElem
@@ -59,11 +66,15 @@ struct RootElem{T<:AbstractLieAlgebraElem} <: AbstractLieAlgebraElem
     root::Root
 end
 
-algebra(elem::RootElem) = algebra(elem.elem)
-root(elem::RootElem) = elem.root
+RootElem(elem::AbstractLieAlgebraElem, root::Vector{Int}) = RootElem(elem, Root(root))
 
-act(
-    elem::RootElem,
-    wv::WeightVector,
-    a::AbstractGroupAction
-) = WeightVector(root(elem)+weight(wv), act(elem.elem, vector(wv), a))
+RootElem(
+    alg::T,
+    coeffs::Vector{F},
+    root::Root
+) where {F, T<:AbstractLieAlgebra{F}} = RootElem(LieAlgebraElem(alg, coeffs), root)
+
+algebra(elem::RootElem) = algebra(elem.elem)
+element(elem::RootElem) = elem.elem
+root(elem::RootElem) = elem.root
+matrix(elem::RootElem) = matrix(element(elem))

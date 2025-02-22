@@ -1,4 +1,5 @@
-export GroupRepresentation
+export GroupRepresentation,
+    irreducibles
 
 
 struct GroupRepresentation{A<:AbstractGroupAction{Lie}, T<:AbstractVectorSpace} <: AbstractGroupRepresentation{Lie, T}
@@ -28,4 +29,32 @@ function Base.show(io::IO, ρ::GroupRepresentation)
         "GroupRepresentation of $(name(group(ρ))) ",
         "on the $(dim(ρ))-dimensional vector space"
     )
+end
+
+function common_nullspace_as_weight_vectors(
+    Xs::Vector{<:AbstractLieAlgebraElem},
+    ws::WeightStructure
+)
+    
+end
+
+function irreducibles(
+    ρ::GroupRepresentation{A, T}
+) where {A<:AbstractGroupAction{Lie}, T<:AbstractSymmetricPower}
+    V = space(ρ)
+    ws = weight_structure(action(ρ), base_space(V))
+    sym_ws = sym_weight_structure(ws, power(V))
+    Xs = positive_root_elements(algebra(action(ρ)))
+    hw_vectors = common_nullspace_as_weight_vectors(Xs, sym_ws)
+    return [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors]
+end
+
+function irreducibles(
+    ρ::GroupRepresentation{A, T}
+) where {A<:AbstractGroupAction{Lie}, T<:AbstractDirectSum}
+    irreds = IrreducibleRepresentation{A}[]
+    for V in summands(space(ρ))
+        append!(irreds, irreducibles(GroupRepresentation(action(ρ), V)))
+    end
+    return irreds
 end
