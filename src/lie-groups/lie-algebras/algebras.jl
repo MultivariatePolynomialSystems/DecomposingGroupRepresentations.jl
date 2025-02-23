@@ -53,6 +53,7 @@ Base.:+(w::Weight, r::Root) = Weight(w.weight + r.root)
 Base.:+(r₁::Root, r₂::Root) = Root(r₁.root + r₂.root)
 Base.convert(::Type{Root}, v::Vector{Int}) = Root(v)
 Base.convert(::Type{Vector{Int}}, r::Root) = r.root
+Vector{Int}(r::Root) = r.root
 
 struct ChevalleyBasis{T}
     std_basis::Vector{Matrix{T}} # TODO: remove?
@@ -221,3 +222,5 @@ positive_root_elements(alg::SumLieAlgebra) = get_elements(alg, :positive_root_el
 negative_root_elements(alg::SumLieAlgebra) = get_elements(alg, :negative_root_elements)
 
 zero_weight(alg::AbstractLieAlgebra) = Weight(zeros(weight_type(alg), rank(alg)))
+positive_roots(alg::AbstractLieAlgebra) = [root(pre) for pre in positive_root_elements(alg)]
+negative_roots(alg::AbstractLieAlgebra) = [root(nre) for nre in negative_root_elements(alg)]

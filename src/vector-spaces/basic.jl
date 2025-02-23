@@ -26,13 +26,14 @@ function Base.:∩(V₁::MatrixVectorSpace, V₂::MatrixVectorSpace)
     return MatrixVectorSpace(matrix(V₁)*N[1:dim(V₁), :]) # TODO: pick V with smaller dim
 end
 
-
+# TODO: add gens?
 struct VectorSpace{T, F} <: AbstractVectorSpace{F}
-    basis::Vector{T} # TODO: change to gens?
+    basis::Vector{T}
 end
 
 VectorSpace{T, F}() where {T, F} = VectorSpace{T, F}(Vector{T}())
 VectorSpace{T, F}(v::T) where {T, F} = VectorSpace{T, F}([v])
+VectorSpace(F::DataType, vs::Vector{T}) where {T} = VectorSpace{T, F}(vs)
 
 basis(V::VectorSpace) = V.basis
 basis(V::VectorSpace, i::Integer) = basis(V)[i]
@@ -56,30 +57,22 @@ Base.rand(V::VectorSpace{T, F}) where {T, F} = sum(rand(F, dim(V)) .* basis(V))
 
 variables(V::VectorSpace{<:Variable}) = basis(V)
 
-function to_matrix(V::VectorSpace{<:AbstractPolynomialLike, F}, mons::Vector{<:Monomial}) where F
-    M = zeros(F, length(mons), dim(V))
-    for (i, f) in enumerate(basis(V))
-        d = Dict(zip(monomials(f), coefficients(f)))
-        for (j, mon) in enumerate(mons)
-            M[j, i] = get(d, mon, zero(F))
-        end
-    end
-    return M
-end
-
 function Base.:∩(
     V₁::VectorSpace{<:AbstractPolynomialLike, F},
     V₂::VectorSpace{<:AbstractPolynomialLike, F}
 ) where F
-    mons₁ = ∪([monomials(f) for f in basis(V₁)]...)
-    mons₂ = ∪([monomials(f) for f in basis(V₂)]...)
-    all_mons = ∪(mons₁, mons₂)
-    M₁ = to_matrix(V₁, all_mons)
-    M₂ = to_matrix(V₂, all_mons)
+    all_mons = monomials(basis(V₁), basis(V₂))
+    M₁ = coeffs_matrix(basis(V₁), all_mons)
+    M₂ = coeffs_matrix(basis(V₂), all_mons)
     N = nullspace(hcat(M₁, M₂))
     N = hcat([div_by_lowest_magnitude(N[:,i], 1e-8) for i in 1:size(N, 2)]...)
     sparsify!(N, 1e-8)
     Vᵢ = M₁*N[1:dim(V₁), :]
-    return VectorSpace{Polynomial, F}([sum(c .* all_mons) for c in eachcol(Vᵢ)])
+    return VectorSpace(F, [sum(c .* all_mons) for c in eachcol(Vᵢ)])
 end
 
+function zero_combinations(F::Vector{<:AbstractPolynomial})
+    mons = monomials(F)
+    M = coeffs_matrix(F, mons)
+    return eachcol(nullspace(M))
+end

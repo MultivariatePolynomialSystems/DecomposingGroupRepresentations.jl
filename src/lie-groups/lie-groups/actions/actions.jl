@@ -1,8 +1,8 @@
 export MatrixGroupAction,
-    group,
     action_vectors,
     ScalingLieGroupAction,
     action_vector,
+    DirectProductGroupAction,
     ×,
     are_commutative,
     act

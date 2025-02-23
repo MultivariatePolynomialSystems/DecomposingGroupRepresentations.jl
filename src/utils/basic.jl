@@ -93,3 +93,20 @@ function div_by_lowest_magnitude(v::AbstractVector{<:Number}, tol::Float64)
     sparsify!(new_v, tol)
     return new_v
 end
+
+DynamicPolynomials.monomials(F::Vector{<:AbstractPolynomialLike}) = ∪([monomials(f) for f in F]...)
+DynamicPolynomials.monomials(Fs::Vector{<:AbstractPolynomialLike}...) = ∪([monomials(F) for F in Fs]...)
+
+function coeffs_matrix(
+    F::Vector{<:AbstractPolynomialLike{T}},
+    mons::Vector{M}
+) where {T, M<:Monomial}
+    C = zeros(T, length(mons), length(F))
+    for (i, f) in enumerate(F)
+        d = Dict{M,T}(zip(monomials(f), coefficients(f)))
+        for (j, mon) in enumerate(mons)
+            C[j, i] = get(d, mon, zero(T))
+        end
+    end
+    return C
+end

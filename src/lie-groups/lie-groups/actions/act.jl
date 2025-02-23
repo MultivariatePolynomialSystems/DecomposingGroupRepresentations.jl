@@ -45,7 +45,13 @@ act(
 ) where F = sum([act(Xᵢ, aᵢ, f) for (Xᵢ, aᵢ) in zip(elements(X), lie_actions(a))])
 
 act(
-    elem::RootElem,
+    X::RootElem,
+    a::AbstractGroupAction,
+    f::AbstractPolynomialLike
+) = act(element(X), a, f)
+
+act(
+    X::RootElem,
     a::AbstractGroupAction,
     wv::WeightVector
-) = WeightVector(root(elem)+weight(wv), act(elem.elem, a, vector(wv)))
+) = WeightVector(root(X)+weight(wv), act(X, a, vector(wv)))

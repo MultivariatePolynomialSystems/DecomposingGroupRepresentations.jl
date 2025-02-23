@@ -13,7 +13,7 @@ end
 function weight_structure(
     a::ScalingLieGroupAction{F},
     V::VectorSpace{T, F}
-) where {F, T<:Variable}
+) where {F,S,M,T<:Variable{S,M}}
     @assert variables(a) ⊆ variables(V)
     ws = WeightStructure{F, VectorSpace{T, F}, Weight{weight_type(algebra(a))}}()
     for (i, var) in enumerate(variables(a))
@@ -32,11 +32,11 @@ hw_spaces(a::ScalingLieGroupAction, V::VectorSpace{<:Variable}) = weight_structu
 
 function weight_structure(
     a::MatrixGroupAction{Lie, F},
-    V::VectorSpace{<:Variable, F};
+    V::VectorSpace{<:Variable{T,S}, F};
     as_hw_spaces::Bool=false
-) where F
+) where {F,T,S}
     @assert variables(a) ⊆ variables(V)
-    space_type = VectorSpace{Polynomial, F}
+    space_type = VectorSpace{Polynomial{T,S,F}, F}
     ws_V = WeightStructure{F, space_type, Weight{weight_type(algebra(a))}}()
     ws_alg = as_hw_spaces ? hw_spaces(algebra(a)) : weight_structure(algebra(a))
     for w_space in ws_alg
@@ -69,10 +69,10 @@ hw_spaces(
 
 function weight_structure(
     a::AbstractGroupAction{Lie, F},
-    V::VectorSpace{<:Variable, F}
-) where F
+    V::VectorSpace{<:Variable{T,S}, F}
+) where {F, T, S}
     hw_struct = hw_spaces(a, V)
-    ws = WeightStructure{F, VectorSpace{Polynomial,F}, Weight{weight_type(algebra(a))}}()
+    ws = WeightStructure{F, VectorSpace{Polynomial{T,S,F}, F}, Weight{weight_type(algebra(a))}}()
     for hw_space in hw_struct
         for hwv in hw_space
             hwm = HighestWeightModule(a, hwv)
