@@ -53,6 +53,7 @@ variables(V::VectorSpace{<:Variable}) = basis(V)
 Base.iszero(V::VectorSpace) = dim(V) == 0
 Base.rand(V::VectorSpace{T, F}) where {T, F} = sum(rand(F, dim(V)) .* basis(V))
 Base.push!(V::VectorSpace{T}, v::T) where T = push!(V.basis, v)
+Base.convert(::Type{VectorSpace{T₁, F}}, V::VectorSpace{T₂, F}) where {T₁, T₂, F} = VectorSpace{T₁, F}(convert(Vector{T₁}, basis(V)))
 
 Base.:+(
     Vs::VectorSpace{T, F}...
@@ -78,6 +79,7 @@ function Base.:∩(
     M₁ = coeffs_matrix(basis(V₁), all_mons)
     M₂ = coeffs_matrix(basis(V₂), all_mons)
     N = nullspace(hcat(M₁, M₂); atol=tol)
+    size(N, 2) == 0 && return nothing
     N = hcat([div_by_lowest_magnitude(N[:,i], 1e-8) for i in 1:size(N, 2)]...)
     sparsify!(N, tol)
     Vᵢ = M₁*N[1:dim(V₁), :]

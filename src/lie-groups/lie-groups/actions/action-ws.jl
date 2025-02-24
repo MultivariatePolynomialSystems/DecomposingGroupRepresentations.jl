@@ -7,7 +7,7 @@ function inv_weight_space(
     @assert variables(a) ⊆ variables(V)
     inv_vars = setdiff(variables(V), variables(a)) # variables invariant under the action
     isempty(inv_vars) && return nothing
-    return WeightSpace(zero_weight(group(a)), VariableSpace{T,F}(inv_vars))
+    return WeightSpace(zero_weight(group(a)), VectorSpace(F, inv_vars))
 end
 
 function weight_structure(
@@ -53,7 +53,7 @@ hw_spaces(a::MatrixGroupAction{Lie}, V::VectorSpace{<:Variable}) = weight_struct
 function Base.:∩(ws₁::WeightSpace, ws₂::WeightSpace)
     new_weight = vcat(weight(ws₁), weight(ws₂))
     int_space = ∩(space(ws₁), space(ws₂))
-    iszero(int_space) && return nothing
+    isnothing(int_space) && return nothing
     return WeightSpace(new_weight, int_space)
 end
 

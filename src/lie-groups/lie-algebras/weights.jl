@@ -76,7 +76,7 @@ end
 
 struct WeightStructure{F, T<:AbstractVectorSpace{F}, W<:Weight}
     weights::Vector{W} # Ordering needed for sym_weight_structure
-    dict::Dict{W, WeightSpace{F, T, W}} # TODO: new type for WeightSpace{F,T,W} ?
+    dict::Dict{W, WeightSpace{F, T, W}} # TODO: new type for WeightSpace{F,T,W}? Do all spaces have to be of the same type?
 end
 
 WeightStructure{F,T,W}() where {F,T,W} = WeightStructure{F,T,W}(Weight[], Dict())

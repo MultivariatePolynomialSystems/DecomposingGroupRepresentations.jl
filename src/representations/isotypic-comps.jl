@@ -1,4 +1,5 @@
-export IsotypicComponent
+export IsotypicComponent,
+    nirreducible
 
 
 struct IsotypicComponent{
@@ -27,5 +28,5 @@ function Base.show(io::IO, ::MIME"text/plain", ρ::IsotypicComponent)
 end
 
 function Base.show(io::IO, ρ::IsotypicComponent)
-    print(io, "IsotypicComponent of dimension ", dim(ρ))
+    print(io, "IsotypicComponent with irr. multiplicity ", nirreducible(ρ))
 end
