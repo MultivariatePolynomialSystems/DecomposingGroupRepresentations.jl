@@ -1,5 +1,7 @@
 export GroupRepresentation,
-    irreducibles
+    irreducibles,
+    common_nullspace_as_weight_vectors, ws_nullspace,
+    isotypic_components
 
 
 struct GroupRepresentation{A<:AbstractGroupAction{Lie}, T<:AbstractVectorSpace} <: AbstractGroupRepresentation{Lie, T}
@@ -60,6 +62,21 @@ common_nullspace_as_weight_vectors(
 
 function irreducibles(
     ρ::GroupRepresentation{A, T}
+) where {A<:AbstractGroupAction{Lie}, T<:SymmetricPowersSpace}
+    V = space(ρ)
+    ws = weight_structure(action(ρ), base_space(V))
+    irreds = IrreducibleRepresentation{A}[]
+    for p in powers(V)
+        sym_ws = sym_weight_structure(ws, p)
+        Xs = positive_root_elements(algebra(action(ρ)))
+        hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), sym_ws)
+        append!(irreds, [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors])
+    end
+    return irreds
+end
+
+function irreducibles(
+    ρ::GroupRepresentation{A, T}
 ) where {A<:AbstractGroupAction{Lie}, T<:AbstractSymmetricPower}
     V = space(ρ)
     ws = weight_structure(action(ρ), base_space(V))
@@ -77,4 +94,21 @@ function irreducibles(
         append!(irreds, irreducibles(GroupRepresentation(action(ρ), V)))
     end
     return irreds
+end
+
+function isotypic_components(
+    ρ::GroupRepresentation{A}
+) where {A<:AbstractGroupAction{Lie}}
+    irreds = irreducibles(ρ)
+    W = Weight{weight_type(algebra(action(ρ)))}
+    iso_dict = Dict{W, Vector{IrreducibleRepresentation{A}}}()
+    for irr in irreds
+        irrs = get(iso_dict, highest_weight(irr), nothing)
+        if isnothing(irrs)
+            iso_dict[highest_weight(irr)] = [irr]
+        else
+            push!(irrs, irr)
+        end
+    end
+    return [IsotypicComponent(action(ρ), hw, irrs) for (hw, irrs) in iso_dict]
 end
