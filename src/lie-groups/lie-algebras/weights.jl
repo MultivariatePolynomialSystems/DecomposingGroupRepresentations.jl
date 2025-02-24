@@ -5,7 +5,8 @@ export Weight,
     WeightSpace,
     space,
     WeightStructure,
-    weight_space
+    weight_space,
+    sym_weight_structure
 
 
 struct Weight{T}
@@ -19,6 +20,8 @@ Base.zero(w::Weight) = Weight(zero(w.weight))
 Base.vcat(w₁::Weight{T}, w₂::Weight{T}) where T = Weight(vcat(w₁.weight, w₂.weight))
 Base.hash(w::Weight, h::UInt) = hash(w.weight, h)
 Base.:(==)(w₁::Weight, w₂::Weight) = w₁.weight == w₂.weight
+Base.:*(n::Number, w::Weight) = Weight(n*w.weight)
+Base.:+(w₁::Weight{T}, w₂::Weight{T}) where {T} = Weight{T}(w₁.weight + w₂.weight)
 
 struct WeightVector{T, W<:Weight}
     weight::W
@@ -72,15 +75,15 @@ function Base.iterate(ws::WeightSpace, state=1)
 end
 
 struct WeightStructure{F, T<:AbstractVectorSpace{F}, W<:Weight}
-    weights::Vector{W} # TODO: remove?
-    dict::Dict{W, WeightSpace{F, T, W}}
+    weights::Vector{W} # Ordering needed for sym_weight_structure
+    dict::Dict{W, WeightSpace{F, T, W}} # TODO: new type for WeightSpace{F,T,W} ?
 end
 
 WeightStructure{F,T,W}() where {F,T,W} = WeightStructure{F,T,W}(Weight[], Dict())
 
 WeightStructure(
     weights::Vector{<:Weight},
-    weight_spaces::Vector{<:MatrixVectorSpace}
+    weight_spaces::Vector{<:AbstractVectorSpace}
 ) = WeightStructure(
     weights,
     Dict(zip(weights, [WeightSpace(w, V) for (w, V) in zip(weights, weight_spaces)]))
@@ -112,9 +115,19 @@ Base.convert(
 )
 
 weights(ws::WeightStructure) = ws.weights
+weights(ws::WeightStructure, inds...) = getindex(weights(ws), inds...)
 nweights(ws::WeightStructure) = length(ws.weights)
 weight(ws::WeightStructure, i::Integer) = weights(ws)[i]
 weight_space(ws::WeightStructure, i::Integer) = ws[weight(ws, i)]
+weight_spaces(
+    ws::WeightStructure;
+    as_spaces::Bool=false
+) = as_spaces ? [space(ws[w]) for w in weights(ws)] : [ws[w] for w in weights(ws)]
+weight_spaces(
+    ws::WeightStructure,
+    inds...;
+    as_spaces::Bool=false
+) = as_spaces ? [space(ws[w]) for w in weights(ws, inds...)] : [ws[w] for w in weights(ws, inds...)]
 dims(ws::WeightStructure) = [dim(space(ws[w])) for w in weights(ws)]
 dim(ws::WeightStructure) = sum(dims(ws))
 Base.length(ws::WeightStructure) = nweights(ws)
@@ -154,11 +167,11 @@ end
 
 Base.push!(ws::WeightStructure{F,T,W}, wv::WeightVector) where {F,T,W} = push!(ws, WeightSpace{F,T,W}(wv))
 
-function sym_weight_structure(ws::WeightStructure{F}, d::Int) where F
+function sym_weight_structure(ws::WeightStructure{F,T,W}, d::Int) where {F, T, W}
     d == 0 && return WeightStructure([WeightSpace(zero_weight(ws), field_space(ws))])
     d == 1 && return ws
     combs = multiexponents(; degree=d, nvars=nweights(ws))
-    new_weights_dict = Dict{Vector{Int}, Vector{typeof(combs[1])}}()
+    new_weights_dict = Dict{W, Vector{typeof(first(combs))}}()
     for comb in combs
         w = sum([comb.nzval[i]*weight(ws, comb.nzind[i]) for i in 1:length(comb.nzind)])
         if haskey(new_weights_dict, w)
@@ -167,12 +180,10 @@ function sym_weight_structure(ws::WeightStructure{F}, d::Int) where F
             new_weights_dict[w] = [comb]
         end
     end
-    new_weights = [zeros(Int, 0) for _ in 1:length(new_weights_dict)]
-    new_weight_spaces = [zeros(ComplexF64, 0, 0) for _ in 1:length(new_weights_dict)]
-    for (i, (weight, combs)) in enumerate(new_weights_dict)
-        new_weights[i] = weight
-        Ms = [⊙(weight_spaces(ws, comb.nzind; as_matrices=true), comb.nzval, mexps) for comb in combs]
-        new_weight_spaces[i] = hcat(Ms...)
+    new_ws = WeightStructure{F,T,W}()
+    for (weight, combs) in new_weights_dict
+        w_sps = [*(weight_spaces(ws, comb.nzind; as_spaces=true), comb.nzval) for comb in combs]
+        push!(new_ws, WeightSpace(weight, +(w_sps...)))
     end
-    return WeightStructure(new_weights, new_weight_spaces)
+    return new_ws
 end

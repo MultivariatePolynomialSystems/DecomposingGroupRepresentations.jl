@@ -20,7 +20,7 @@ MatrixGroupAction(
 group(a::MatrixGroupAction) = a.group
 action_vectors(a::MatrixGroupAction) = a.vars
 variables(a::MatrixGroupAction) = vcat(action_vectors(a)...)
-space(a::MatrixGroupAction{T, F, S, V}) where {T,F,S,V} = VectorSpace{V,F}(variables(a))
+space(a::MatrixGroupAction{T, F}) where {T,F} = VectorSpace(F, variables(a))
 
 function Base.show(io::IO, a::MatrixGroupAction)
     println(io, "MatrixGroupAction of $(name(group(a)))")
@@ -38,7 +38,7 @@ end
 group(a::ScalingLieGroupAction) = a.group
 action_vector(a::ScalingLieGroupAction) = a.vars
 variables(a::ScalingLieGroupAction) = action_vector(a)
-space(a::ScalingLieGroupAction{F,T,V}) where {F,T,V} = VectorSpace{V,F}(action_vector(a))
+space(a::ScalingLieGroupAction{F}) where F = VectorSpace(F, action_vector(a))
 
 ScalingLieGroupAction(v::Vector{<:Variable}) = ScalingLieGroupAction(ScalingLieGroup{ComplexF64}(length(v)), v)
 MatrixGroupAction(a::ScalingLieGroupAction) = MatrixGroupAction(group(a), [action_vector(a)])

@@ -23,7 +23,7 @@ function Base.show(io::IO, ::MIME"text/plain", ρ::IsotypicComponent)
     println(io, " Lie group: ", name(group(ρ)))
     println(io, " highest weight: ", highest_weight(ρ))
     println(io, " multiplicity of irreducible subrepresentation: ", nirreducible(ρ))
-    print(io, " dimension of irreducible subrepresentation: ", weyl_dim(highest_weight(ρ)))
+    print(io, " dimension of irreducible subrepresentation: ", weyl_dim(highest_weight(ρ), group(ρ)))
 end
 
 function Base.show(io::IO, ρ::IsotypicComponent)

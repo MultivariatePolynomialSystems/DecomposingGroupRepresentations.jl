@@ -1,6 +1,6 @@
 module DecomposingRepresentations
 
-using SparseArrays: SparseMatrixCSC, sparse, findnz
+using SparseArrays: SparseMatrixCSC, sparse, findnz, spzeros
 using LinearAlgebra: Diagonal, nullspace, I, dot, norm
 
 import DynamicPolynomials
@@ -8,7 +8,12 @@ using DynamicPolynomials: @polyvar, Variable, Monomial, Polynomial, Commutative,
 using DynamicPolynomials: subs, monomials, coefficients, differentiate
 export @polyvar, Variable, Monomial, Polynomial, Commutative, CreationOrder, Graded, LexOrder
 
+using Combinatorics: partitions, multiset_permutations, combinations, with_replacement_combinations
+
+using Base.Iterators: product
+
 include("utils/basic.jl")
+include("utils/Gauss-Jordan.jl")
 include("types.jl")
 
 include("vector-spaces/basic.jl")

@@ -63,5 +63,5 @@ function Base.show(io::IO, V::SymmetricPowersSpace; indent::Int=0)
     println(io, " "^indent, " base space:")
     show(io, base_space(V); indent=2)
     println(io)
-    print(io, " "^indent, " powers: $(powers(V))")
+    print(io, " "^indent, " powers: ", join(powers(V), ", "))
 end

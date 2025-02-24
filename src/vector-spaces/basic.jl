@@ -33,15 +33,13 @@ end
 
 VectorSpace{T, F}() where {T, F} = VectorSpace{T, F}(Vector{T}())
 VectorSpace{T, F}(v::T) where {T, F} = VectorSpace{T, F}([v])
-VectorSpace(F::DataType, vs::Vector{T}) where {T} = VectorSpace{T, F}(vs)
+VectorSpace(F::DataType, vars::Vector{T}) where T<:Variable = VectorSpace{T, F}(unique(vars))
+VectorSpace(F::DataType, vs::Vector{T}) where T = VectorSpace{T, F}(vs)
+VectorSpace(F::DataType, polys::Vector{T}) where T<:Polynomial = VectorSpace{T,F}(in_rref(polys))
 
 basis(V::VectorSpace) = V.basis
 basis(V::VectorSpace, i::Integer) = basis(V)[i]
 dim(V::VectorSpace) = length(basis(V))
-Base.iszero(V::VectorSpace) = dim(V) == 0
-field_space(::Type{VectorSpace{T, F}}) where {T, F} = VectorSpace{T, F}(T(one(F)))
-
-Base.push!(V::VectorSpace{T}, v::T) where T = push!(V.basis, v)
 
 function Base.show(io::IO, V::VectorSpace{T, F}; indent::Int=0) where {T, F}
     println(io, " "^indent, "VectorSpace of dimension $(dim(V))")
@@ -50,29 +48,44 @@ function Base.show(io::IO, V::VectorSpace{T, F}; indent::Int=0) where {T, F}
     print(io, " "^indent, " basis: ", join(map(repr, basis(V)), ", "))
 end
 
+field_space(::Type{VectorSpace{T, F}}) where {T, F} = VectorSpace{T, F}(one(T))
+variables(V::VectorSpace{<:Variable}) = basis(V)
+Base.iszero(V::VectorSpace) = dim(V) == 0
+Base.rand(V::VectorSpace{T, F}) where {T, F} = sum(rand(F, dim(V)) .* basis(V))
+Base.push!(V::VectorSpace{T}, v::T) where T = push!(V.basis, v)
+
 Base.:+(
     Vs::VectorSpace{T, F}...
-) where {T<:Variable, F} = VectorSpace{T,F}(collect(Set(vcat([basis(V) for V in Vs]...))))
-Base.rand(V::VectorSpace{T, F}) where {T, F} = sum(rand(F, dim(V)) .* basis(V))
+) where {T<:Variable, F} = VectorSpace{T,F}(∪([basis(V) for V in Vs]...))
+Base.:+(
+    Vs::VectorSpace{T, F}...
+) where {T<:Polynomial, F} = VectorSpace{T,F}(in_rref(vcat([basis(V) for V in Vs]...)))
 
-variables(V::VectorSpace{<:Variable}) = basis(V)
+Base.:*(
+    Vs::Vector{VectorSpace{T, F}}
+) where {T<:Polynomial, F} = VectorSpace{T, F}(in_rref([prod(fs) for fs in product([basis(V) for V in Vs]...)][:]))
+Base.:*(
+    Vs::Vector{VectorSpace{T, F}},
+    muls::Vector{Int}
+) where {T<:Polynomial, F} = *(vcat([fill(V, mul) for (V, mul) in zip(Vs, muls)]...))
 
 function Base.:∩(
     V₁::VectorSpace{<:AbstractPolynomialLike, F},
-    V₂::VectorSpace{<:AbstractPolynomialLike, F}
+    V₂::VectorSpace{<:AbstractPolynomialLike, F};
+    tol::Real=1e-5
 ) where F
     all_mons = monomials(basis(V₁), basis(V₂))
     M₁ = coeffs_matrix(basis(V₁), all_mons)
     M₂ = coeffs_matrix(basis(V₂), all_mons)
-    N = nullspace(hcat(M₁, M₂))
+    N = nullspace(hcat(M₁, M₂); atol=tol)
     N = hcat([div_by_lowest_magnitude(N[:,i], 1e-8) for i in 1:size(N, 2)]...)
-    sparsify!(N, 1e-8)
+    sparsify!(N, tol)
     Vᵢ = M₁*N[1:dim(V₁), :]
     return VectorSpace(F, [sum(c .* all_mons) for c in eachcol(Vᵢ)])
 end
 
-function zero_combinations(F::Vector{<:AbstractPolynomial})
+function zero_combinations(F::Vector{<:AbstractPolynomial}; tol::Real=1e-5)
     mons = monomials(F)
     M = coeffs_matrix(F, mons)
-    return eachcol(nullspace(M))
+    return eachcol(nullspace(M; atol=tol))
 end

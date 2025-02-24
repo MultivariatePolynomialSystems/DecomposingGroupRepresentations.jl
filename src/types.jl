@@ -2,6 +2,7 @@ export GroupType, Lie, Finite, Mixed
 export algebra, group
 export AbstractGroup, AbstractDirectProductGroup, AbstractGroupElem, AbstractGroupAction
 export basis
+export action, dim
 
 abstract type GroupType end
 struct Lie <: GroupType end

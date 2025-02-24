@@ -53,7 +53,7 @@ Base.:+(w::Weight, r::Root) = Weight(w.weight + r.root)
 Base.:+(r₁::Root, r₂::Root) = Root(r₁.root + r₂.root)
 Base.convert(::Type{Root}, v::Vector{Int}) = Root(v)
 Base.convert(::Type{Vector{Int}}, r::Root) = r.root
-Vector{Int}(r::Root) = r.root
+to_vector(r::Root) = r.root
 
 struct ChevalleyBasis{T}
     std_basis::Vector{Matrix{T}} # TODO: remove?

@@ -1,4 +1,5 @@
-export rand_rotation
+export rand_rotation, sparsify!
+export in_rref, monomials, coeffs_matrix, polynomials
 
 a2p(M::AbstractMatrix{<:Number}) = [M; ones(eltype(M), 1, size(M, 2))]
 p2a(M::AbstractMatrix{<:Number}) = (M./M[end:end,:])[1:end-1,:]
@@ -97,6 +98,7 @@ end
 DynamicPolynomials.monomials(F::Vector{<:AbstractPolynomialLike}) = ∪([monomials(f) for f in F]...)
 DynamicPolynomials.monomials(Fs::Vector{<:AbstractPolynomialLike}...) = ∪([monomials(F) for F in Fs]...)
 
+# column corresponds to a polynomial
 function coeffs_matrix(
     F::Vector{<:AbstractPolynomialLike{T}},
     mons::Vector{M}
@@ -109,4 +111,52 @@ function coeffs_matrix(
         end
     end
     return C
+end
+
+polynomials(
+    M::AbstractMatrix,
+    mons::Vector{<:Monomial}
+) = [sum(m .* mons) for m in eachcol(M)]
+
+polynomials(
+    C::AbstractVector{<:AbstractVector},
+    mons::Vector{<:Monomial}
+) = [sum(c .* mons) for c in C]
+
+function in_rref(
+    F::Vector{<:AbstractPolynomial{T}}
+) where T
+    mons = monomials(F)
+    M = Matrix(transpose(coeffs_matrix(F, mons)))
+    rref!(M)
+    sparsify!(M, 1e-8)
+    N = filter(row -> !iszero(row), eachrow(M))
+    return polynomials(N, mons)
+end
+
+# Generates a list of multiexponents of degree @degree in @nvars variables
+function multiexponents(degree::Tv, nvars::Ti) where {Tv<:Integer,Ti<:Integer}
+    mexps = [spzeros(Tv, Ti, nvars) for _ in 1:num_mons(nvars, degree)]
+    iszero(degree) && return mexps
+    k = 1
+    for n in 1:nvars
+        for part::Vector{Tv} in partitions(degree, n)
+            for vals in multiset_permutations(part, n)
+                for inds in combinations(Ti.(1:nvars), n)
+                    mexps[k][inds] = vals
+                    k += 1
+                end
+            end
+        end
+    end
+    return mexps
+end
+
+function multiexponents(; degree::Tv, nvars::Ti, upto::Bool=false) where {Tv<:Integer,Ti<:Integer}
+    !upto && return multiexponents(degree, nvars)
+    mexps = [spzeros(Tv, Ti, nvars)]
+    for d::Tv in 1:degree
+        append!(mexps, multiexponents(d, nvars))
+    end
+    return mexps
 end

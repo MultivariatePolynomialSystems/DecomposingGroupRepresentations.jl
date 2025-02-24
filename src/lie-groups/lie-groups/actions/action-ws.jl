@@ -1,4 +1,4 @@
-export hw_spaces
+export hw_spaces, weight_structure
 
 function inv_weight_space(
     a::AbstractGroupAction{Lie, F},
@@ -41,7 +41,7 @@ function weight_structure(
     ws_alg = as_hw_spaces ? hw_spaces(algebra(a)) : weight_structure(algebra(a))
     for w_space in ws_alg
         poly_wvs = [sum(av .* vector(wv)) for av in action_vectors(a) for wv in w_space]
-        push!(ws_V, WeightSpace(weight(w_space), space_type(poly_wvs)))
+        push!(ws_V, WeightSpace(weight(w_space), VectorSpace(F, poly_wvs)))
     end
     inv_ws = inv_weight_space(a, V)
     !isnothing(inv_ws) && push!(ws_V, inv_ws)

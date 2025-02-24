@@ -24,7 +24,7 @@ end
 
 # Weyl dimension formula
 function weyl_dim(λ::Weight, G::AbstractGroup{Lie})
-    Δ⁺ = Vector{Int}.(positive_roots(algebra(G)))
+    Δ⁺ = to_vector.(positive_roots(algebra(G)))
     ρ = sum(Δ⁺) / 2
     return Int(prod([dot(λ.weight + ρ, α) / dot(ρ, α) for α in Δ⁺]))
 end
