@@ -10,9 +10,7 @@ struct GroupRepresentation{A<:AbstractGroupAction{Lie}, T<:AbstractVectorSpace} 
 end
 
 action(ρ::GroupRepresentation) = ρ.action
-group(ρ::GroupRepresentation) = group(action(ρ))
 space(ρ::GroupRepresentation) = ρ.V
-dim(ρ::GroupRepresentation) = dim(space(ρ))
 
 # called by Shift+Enter
 function Base.show(io::IO, ::MIME"text/plain", ρ::GroupRepresentation)

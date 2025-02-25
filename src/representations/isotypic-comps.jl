@@ -1,5 +1,5 @@
 export IsotypicComponent,
-    nirreducible
+    mul
 
 
 struct IsotypicComponent{
@@ -11,22 +11,22 @@ struct IsotypicComponent{
 end
 
 action(ρ::IsotypicComponent) = ρ.action
-group(ρ::IsotypicComponent) = group(action(ρ))
 highest_weight(ρ::IsotypicComponent) = ρ.highest_weight
 irreducibles(ρ::IsotypicComponent) = ρ.irreds
-nirreducible(ρ::IsotypicComponent) = length(ρ.irreds)
+mul(ρ::IsotypicComponent) = length(ρ.irreds)
 space(ρ::IsotypicComponent) = DirectSumSpace([space(ρᵢ) for ρᵢ in irreducibles(ρ)])
-dim(ρ::IsotypicComponent) = sum(dim(ρᵢ) for ρᵢ in irreducibles(ρ))
+dim(ρ::IsotypicComponent) = sum([dim(ρᵢ) for ρᵢ in irreducibles(ρ)])
 hw_vectors(ρ::IsotypicComponent) = [hw_vector(ρᵢ) for ρᵢ in irreducibles(ρ)]
+isotypic_components(ρ::IsotypicComponent) = [ρ]
 
 function Base.show(io::IO, ::MIME"text/plain", ρ::IsotypicComponent)
-    println(io, "IsotypicComponent of dimension ", dim(ρ))
+    println(io, "IsotypicComponent of dimension $(dim(ρ)), multiplicity $(mul(ρ))")
     println(io, " Lie group: ", name(group(ρ)))
     println(io, " highest weight: ", highest_weight(ρ))
-    println(io, " multiplicity of irreducible subrepresentation: ", nirreducible(ρ))
-    print(io, " dimension of irreducible subrepresentation: ", weyl_dim(highest_weight(ρ), group(ρ)))
+    println(io, " dimension of irreducible subrepresentation: ", weyl_dim(highest_weight(ρ), group(ρ)))
+    print(io, " multiplicity of irreducible subrepresentation: ", mul(ρ))
 end
 
 function Base.show(io::IO, ρ::IsotypicComponent)
-    print(io, "IsotypicComponent with irr. multiplicity ", nirreducible(ρ))
+    print(io, "IsotypicComponent with (dim, mul) = ($(dim(ρ)), $(mul(ρ)))")
 end

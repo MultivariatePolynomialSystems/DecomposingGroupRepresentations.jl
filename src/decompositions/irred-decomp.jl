@@ -1,9 +1,17 @@
-function ws_nullspace(X::AbstractLieAlgebraElem, a::AbstractGroupAction{Lie}, ws::WeightSpace{F,T}) where {F,T}
+function ws_nullspace(
+    X::AbstractLieAlgebraElem,
+    a::AbstractGroupAction{Lie},
+    ws::WeightSpace{F};
+    tol::Real=1e-5
+) where F
     B = basis(space(ws))
     Bₐ = [act(X, a, f) for f in B]
     Cs = zero_combinations(Bₐ)
     isempty(Cs) && return nothing
-    return WeightSpace(weight(ws), T([sum(c .* B) for c in Cs]))
+    return WeightSpace(
+        weight(ws),
+        VectorSpace(F, [sum(sparsify!(div_by_lowest_magnitude(c, tol), tol) .* B) for c in Cs])
+        )
 end
 
 function common_nullspace_as_weight_vectors(
@@ -38,6 +46,15 @@ function irreducibles(
         append!(irreds, [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors])
     end
     return irreds
+end
+
+function irreducibles_improved(
+    ρ::GroupRepresentation{A, T}
+) where {A<:AbstractGroupAction{Lie}, T<:SymmetricPowersSpace}
+    V = base_space(space(ρ))
+    base_ρ = GroupRepresentation(action(ρ), V)
+    irreds = irreducibles(base_ρ)
+    
 end
 
 function irreducibles(

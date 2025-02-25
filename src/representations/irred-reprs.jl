@@ -9,7 +9,6 @@ struct IrreducibleRepresentation{
 end
 
 action(ρ::IrreducibleRepresentation) = ρ.action
-group(ρ::IrreducibleRepresentation) = group(action(ρ))
 hw_vector(ρ::IrreducibleRepresentation) = ρ.hw_vector
 space(ρ::IrreducibleRepresentation) = HighestWeightModule(action(ρ), hw_vector(ρ))
 highest_weight(ρ::IrreducibleRepresentation) = weight(hw_vector(ρ))

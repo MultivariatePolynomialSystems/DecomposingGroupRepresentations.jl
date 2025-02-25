@@ -12,6 +12,7 @@ end
 summands(V::DirectSumSpace) = V.summands
 nsummands(V::DirectSumSpace) = length(summands(V))
 dim(V::DirectSumSpace) = sum(dim.(summands(V)))
+basis(V::DirectSumSpace) = vcat([basis(Vi) for Vi in summands(V)]...)
 
 
 struct SymmetricPowerSpace{F, T<:AbstractVectorSpace{F}} <: AbstractSymmetricPower{F}
