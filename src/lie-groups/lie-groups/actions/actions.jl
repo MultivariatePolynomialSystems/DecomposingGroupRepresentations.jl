@@ -41,6 +41,18 @@ variables(a::ScalingLieGroupAction) = action_vector(a)
 space(a::ScalingLieGroupAction{F}) where F = VectorSpace(F, action_vector(a))
 
 ScalingLieGroupAction(v::Vector{<:Variable}) = ScalingLieGroupAction(ScalingLieGroup{ComplexF64}(length(v)), v)
+
+function ScalingLieGroupAction(V::AbstractMatrix{<:Variable})
+    exps = spzeros(Int, size(V, 2), length(V))
+    for j in 1:size(V, 2)
+        exps[j, ((j-1)*size(V,1)+1):(j*size(V,1))] = ones(Int, size(V, 1))
+    end
+    F = ComplexF64
+    alg = ScalingLieAlgebra{F}("(ℂ)$(superscript(size(V,2)))", exps)
+    G = ScalingLieGroup{F}("(ℂˣ)$(superscript(size(V,2)))", alg)
+    return ScalingLieGroupAction(G, V[:])
+end
+
 MatrixGroupAction(a::ScalingLieGroupAction) = MatrixGroupAction(group(a), [action_vector(a)])
 
 function show_action(io::IO, a::ScalingLieGroupAction; offset::Int=0)

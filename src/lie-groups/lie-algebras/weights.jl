@@ -6,7 +6,7 @@ export Weight,
     space,
     WeightStructure,
     weight_space,
-    sym_weight_structure
+    sym
 
 
 struct Weight{T}
@@ -167,7 +167,7 @@ end
 
 Base.push!(ws::WeightStructure{F,T,W}, wv::WeightVector) where {F,T,W} = push!(ws, WeightSpace{F,T,W}(wv))
 
-function sym_weight_structure(ws::WeightStructure{F,T,W}, d::Int) where {F, T, W}
+function sym(ws::WeightStructure{F,T,W}, d::Int) where {F, T, W}
     d == 0 && return WeightStructure([WeightSpace(zero_weight(ws), field_space(ws))])
     d == 1 && return ws
     combs = multiexponents(; degree=d, nvars=nweights(ws))

@@ -43,7 +43,6 @@ algebra(::AbstractLieAlgebraElem) = error("Not implemented")
 
 abstract type AbstractVectorSpace{F} end # TODO: remove F?
 
-name(::AbstractVectorSpace) = error("Not implemented")
 basis(::AbstractVectorSpace) = error("Not implemented")
 dim(::AbstractVectorSpace) = error("Not implemented")
 
@@ -51,6 +50,7 @@ dim(::AbstractVectorSpace) = error("Not implemented")
 abstract type AbstractDirectSum{F} <: AbstractVectorSpace{F} end
 
 summands(::AbstractDirectSum) = error("Not implemented")
+nsummands(::AbstractDirectSum) = error("Not implemented")
 
 
 abstract type AbstractSymmetricPower{F} <: AbstractVectorSpace{F} end

@@ -34,4 +34,7 @@ include("representations/irred-reprs.jl")
 include("representations/isotypic-comps.jl")
 include("representations/reprs.jl")
 
+include("decompositions/irred-decomp.jl")
+include("decompositions/isotypic-decomp.jl")
+
 end

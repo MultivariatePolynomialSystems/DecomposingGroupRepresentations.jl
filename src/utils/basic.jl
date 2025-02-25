@@ -95,6 +95,26 @@ function div_by_lowest_magnitude(v::AbstractVector{<:Number}, tol::Float64)
     return new_v
 end
 
+function subscript(n::Integer)::String
+    c = n < 0 ? [Char(0x208B)] : []
+    for d in reverse(digits(abs(n)))
+        push!(c, Char(0x2080+d))
+    end
+    return join(c)
+end
+
+function superscript(n::Integer)::String
+    c = n < 0 ? [Char(0x207B)] : []
+    for d in reverse(digits(abs(n)))
+        if d == 0 push!(c, Char(0x2070)) end
+        if d == 1 push!(c, Char(0x00B9)) end
+        if d == 2 push!(c, Char(0x00B2)) end
+        if d == 3 push!(c, Char(0x00B3)) end
+        if d > 3 push!(c, Char(0x2070+d)) end
+    end
+    return join(c)
+end
+
 DynamicPolynomials.monomials(F::Vector{<:AbstractPolynomialLike}) = ∪([monomials(f) for f in F]...)
 DynamicPolynomials.monomials(Fs::Vector{<:AbstractPolynomialLike}...) = ∪([monomials(F) for F in Fs]...)
 
