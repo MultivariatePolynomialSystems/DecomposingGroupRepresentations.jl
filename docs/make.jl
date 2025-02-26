@@ -15,7 +15,20 @@ makedocs(;
         assets=String[],
     ),
     pages=[
-        "Home" => "index.md",
+        "Introduction" => "index.md",
+        "Reductive groups" => [
+            "Finite groups" => "groups/finite.md",
+            "Lie groups" => "groups/lie.md",
+        ],
+        "Representations of reductive groups" => [
+            "Vector spaces" => "representations/spaces.md",
+            "Actions" => "representations/actions.md",
+            "Representations" => "representations/reprs.md",
+        ],
+        "Decomposing representations" => [
+            "Irreducible decomposition" => "decompose/irreducible.md",
+            "Isotypic decomposition" => "decompose/isotypic.md",
+        ],
     ],
 )
 
