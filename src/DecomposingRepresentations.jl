@@ -5,7 +5,7 @@ using LinearAlgebra: Diagonal, nullspace, I, dot, norm
 
 import DynamicPolynomials
 using DynamicPolynomials: @polyvar, Variable, Monomial, Polynomial, Commutative, CreationOrder, Graded, LexOrder, AbstractPolynomialLike, AbstractPolynomial
-using DynamicPolynomials: subs, monomials, coefficients, differentiate
+using DynamicPolynomials: subs, monomials, coefficients, differentiate, variables, nvariables, MonomialVector
 export @polyvar, Variable, Monomial, Polynomial, Commutative, CreationOrder, Graded, LexOrder
 
 using Combinatorics: partitions, multiset_permutations, combinations, with_replacement_combinations

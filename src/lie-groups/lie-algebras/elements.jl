@@ -19,6 +19,7 @@ matrix(elem::LieAlgebraElem) = sum([elem.coeffs[i]*Bᵢ for (i, Bᵢ) in enumera
 Base.size(elem::LieAlgebraElem) = size(algebra(elem))
 Base.zero(alg::LieAlgebra{F}) where F = LieAlgebraElem(alg, zeros(F, dim(alg)))
 Base.zero(alg::ScalingLieAlgebra{F}) where F = LieAlgebraElem(alg, zeros(F, dim(alg)))
+Base.iszero(elem::LieAlgebraElem) = iszero(elem.coeffs)
 Base.rand(alg::LieAlgebra{F}) where F = LieAlgebraElem(alg, rand(F, dim(alg)))
 Base.rand(alg::ScalingLieAlgebra{F}) where F = LieAlgebraElem(alg, rand(F, dim(alg)))
 
