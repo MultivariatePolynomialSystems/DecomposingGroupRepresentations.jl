@@ -17,7 +17,7 @@ dim(alg::ScalingLieAlgebra) = size(alg.exps, 1)
 exponents(alg::ScalingLieAlgebra) = alg.exps
 rank(alg::ScalingLieAlgebra) = dim(alg)
 Base.size(alg::ScalingLieAlgebra) = size(alg.exps, 2)
-weight_type(::ScalingLieAlgebra) = Int
+weight_type(::ScalingLieAlgebra) = Weight{Int}
 
 function show_basis(io::IO, alg::ScalingLieAlgebra; offset::Int=0)
     for i in 1:dim(alg)
@@ -92,8 +92,8 @@ Base.convert(
 struct LieAlgebra{F, W<:Weight} <: AbstractLieAlgebra{F}
     name::String
     basis::ChevalleyBasis{F}
-    weight_structure::WeightStructure{F, MatrixVectorSpace{F}, W}
-    hw_spaces::Vector{WeightSpace{F, MatrixVectorSpace{F}, W}} # TODO: change to WeightStructure?
+    weight_structure::WeightStructure{MatrixVectorSpace{F}, W}
+    hw_spaces::Vector{WeightSpace{MatrixVectorSpace{F}, W}} # TODO: change to WeightStructure?
 end
 
 function so3(field_type::DataType, weight_type::DataType)
@@ -125,7 +125,7 @@ name(alg::LieAlgebra) = alg.name
 dim(alg::LieAlgebra) = length(alg.basis.std_basis)
 rank(alg::LieAlgebra) = length(alg.basis.cartan)
 Base.size(alg::LieAlgebra) = size(alg.basis.std_basis[1], 1)
-weight_type(::LieAlgebra{F, Weight{W}}) where {F, W} = W
+weight_type(::LieAlgebra{F, W}) where {F, W} = W
 
 function Base.show(io::IO, alg::LieAlgebra{F, Weight{W}}; offset::Int=0) where {F, W}
     println(io, " "^offset, "LieAlgebra $(name(alg))")
@@ -221,6 +221,6 @@ cartan_subalgebra(alg::SumLieAlgebra) = get_elements(alg, :cartan_subalgebra)
 positive_root_elements(alg::SumLieAlgebra) = get_elements(alg, :positive_root_elements)
 negative_root_elements(alg::SumLieAlgebra) = get_elements(alg, :negative_root_elements)
 
-zero_weight(alg::AbstractLieAlgebra) = Weight(zeros(weight_type(alg), rank(alg)))
+zero_weight(alg::AbstractLieAlgebra) = zero(weight_type(alg), rank(alg))
 positive_roots(alg::AbstractLieAlgebra) = [root(pre) for pre in positive_root_elements(alg)]
 negative_roots(alg::AbstractLieAlgebra) = [root(nre) for nre in negative_root_elements(alg)]
