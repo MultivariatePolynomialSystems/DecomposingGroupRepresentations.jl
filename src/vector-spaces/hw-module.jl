@@ -1,7 +1,7 @@
 export HighestWeightModule
 
 
-struct HighestWeightModule{F, A<:AbstractGroupAction{Lie, F}, Wv<:WeightVector} <: AbstractVectorSpace{F}
+struct HighestWeightModule{T, F, A<:AbstractGroupAction{Lie, F}, Wv<:WeightVector{T}} <: AbstractVectorSpace{T, F}
     action::A
     hw_vector::Wv
 end
@@ -11,6 +11,9 @@ group(V::HighestWeightModule) = group(action(V))
 hw_vector(V::HighestWeightModule) = V.hw_vector
 highest_weight(V::HighestWeightModule) = weight(hw_vector(V))
 weight_type(V::HighestWeightModule) = typeof(highest_weight(V))
+vector_type(V::HighestWeightModule) = typeof(vector(hw_vector(V)))
+DynamicPolynomials.variables(V::HighestWeightModule) = variables(vector(hw_vector(V)))
+DynamicPolynomials.nvariables(V::HighestWeightModule) = nvariables(vector(hw_vector(V)))
 
 # Weyl dimension formula
 function weyl_dim(λ::Weight, G::AbstractGroup{Lie})
@@ -50,9 +53,19 @@ function orbit(
 end
 
 function basis(
-    V::HighestWeightModule{ComplexF64};
+    V::HighestWeightModule{T, ComplexF64} where T;
     as_weight_vectors::Bool=false
 )
     orb = orbit(hw_vector(V), action(V), Set{weight_type(V)}())
     return as_weight_vectors ? orb : [vector(wv) for wv in orb]
+end
+
+function weight_structure(
+    V::HighestWeightModule{T, F}
+) where {T, F}
+    ws = WeightStructure{VectorSpace{T,F}, weight_type(V)}()
+    for wv in basis(V; as_weight_vectors=true)
+        push!(ws, wv)
+    end
+    return ws
 end
