@@ -8,9 +8,7 @@ dim(::AbstractVectorSpace)
 
 ## VectorSpace
 
-```@docs
-VectorSpace
-```
+
 
 ## Direct sum
 
@@ -18,8 +16,6 @@ VectorSpace
 AbstractDirectSum
 summands(::AbstractDirectSum)
 nsummands(::AbstractDirectSum)
-DirectSumSpace
-SymmetricPowersSpace
 ```
 
 ## Symmetric power
@@ -28,7 +24,6 @@ SymmetricPowersSpace
 AbstractSymmetricPower
 base_space
 power
-SymmetricPower
 ```
 
 ## Tensor product
@@ -40,6 +35,3 @@ spaces
 
 ## HighestWeightModule
 
-```@docs
-HighestWeightModule
-```
