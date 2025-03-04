@@ -7,7 +7,7 @@ export MatrixGroupAction,
     are_commutative,
     act
 
-struct MatrixGroupAction{T<:GroupType, F, S<:AbstractGroup{T,F}, V<:Variable} <: AbstractGroupAction{T, F}
+struct MatrixGroupAction{T<:GroupType, F, S<:AbstractGroup{T,F}, V} <: AbstractGroupAction{T, F}
     group::S
     vars::Vector{Vector{V}}
 end
