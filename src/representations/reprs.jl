@@ -30,3 +30,7 @@ function Base.show(io::IO, ρ::GroupRepresentation)
         "on the $(dim(ρ))-dimensional vector space"
     )
 end
+
+summands(
+    ρ::GroupRepresentation{<:AbstractGroupAction, <:AbstractDirectSum}
+) = [GroupRepresentation(action(ρ), V) for V in summands(space(ρ))]

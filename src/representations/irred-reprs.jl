@@ -2,14 +2,19 @@ export IrreducibleRepresentation
 
 
 struct IrreducibleRepresentation{
-    A<:AbstractGroupAction{Lie}, Wv<:WeightVector
-} <: AbstractGroupRepresentation{Lie, HighestWeightModule}
+    A<:AbstractGroupAction{Lie}, T<:HighestWeightModule
+} <: AbstractGroupRepresentation{Lie, T}
     action::A
-    hw_vector::Wv # highest weight vector
+    hw_module::T
 end
 
+IrreducibleRepresentation(
+    action::AbstractGroupAction{Lie},
+    hw_vector::WeightVector
+) = IrreducibleRepresentation(action, HighestWeightModule(action, hw_vector))
+
 action(ρ::IrreducibleRepresentation) = ρ.action
-hw_vector(ρ::IrreducibleRepresentation) = ρ.hw_vector
+hw_vector(ρ::IrreducibleRepresentation) = hw_vector(ρ.hw_module)
 space(ρ::IrreducibleRepresentation) = HighestWeightModule(action(ρ), hw_vector(ρ))
 highest_weight(ρ::IrreducibleRepresentation) = weight(hw_vector(ρ))
 irreducibles(ρ::IrreducibleRepresentation) = [ρ]

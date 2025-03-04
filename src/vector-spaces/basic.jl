@@ -35,7 +35,11 @@ VectorSpace{T, F}() where {T, F} = VectorSpace{T, F}(Vector{T}())
 VectorSpace{T, F}(v::T) where {T, F} = VectorSpace{T, F}([v])
 VectorSpace(F::DataType, vars::Vector{T}) where T<:Variable = VectorSpace{T, F}(unique(vars))
 VectorSpace(F::DataType, vs::Vector{T}) where T = VectorSpace{T, F}(vs)
-VectorSpace(F::DataType, polys::Vector{T}) where T<:Polynomial = VectorSpace{T,F}(rref(polys))
+VectorSpace(
+    F::DataType,
+    polys::Vector{T};
+    in_rref::Bool=true
+) where T<:Polynomial = VectorSpace{T, F}(in_rref ? rref(polys) : polys)
 
 basis(V::VectorSpace) = V.basis
 basis(V::VectorSpace, i::Integer) = basis(V)[i]

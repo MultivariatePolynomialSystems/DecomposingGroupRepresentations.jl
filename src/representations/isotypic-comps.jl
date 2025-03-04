@@ -4,7 +4,7 @@ export IsotypicComponent,
 
 struct IsotypicComponent{
     A<:AbstractGroupAction{Lie}, W<:Weight, Ir<:IrreducibleRepresentation{A}
-} <: AbstractGroupRepresentation{Lie, DirectSumSpace}
+} <: AbstractGroupRepresentation{Lie, DirectSum}
     action::A
     highest_weight::W
     irreds::Vector{Ir}
@@ -14,7 +14,7 @@ action(ρ::IsotypicComponent) = ρ.action
 highest_weight(ρ::IsotypicComponent) = ρ.highest_weight
 irreducibles(ρ::IsotypicComponent) = ρ.irreds
 mul(ρ::IsotypicComponent) = length(ρ.irreds)
-space(ρ::IsotypicComponent) = DirectSumSpace([space(ρᵢ) for ρᵢ in irreducibles(ρ)])
+space(ρ::IsotypicComponent) = DirectSum([space(ρᵢ) for ρᵢ in irreducibles(ρ)])
 dim(ρ::IsotypicComponent) = sum([dim(ρᵢ) for ρᵢ in irreducibles(ρ)])
 hw_vectors(ρ::IsotypicComponent) = [hw_vector(ρᵢ) for ρᵢ in irreducibles(ρ)]
 isotypic_components(ρ::IsotypicComponent) = [ρ]
