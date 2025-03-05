@@ -25,13 +25,13 @@ end
 SymmetricPower(
     vars::Vector{V},
     power::Integer
-) where {V<:Variable} = SymmetricPower(VectorSpace{V, ComplexF64}(vars), power)
+) where {V<:Expression} = SymmetricPower(VectorSpace{V, ComplexF64}(vars), power)
 
 base_space(V::SymmetricPower) = V.base_space
 power(V::SymmetricPower) = V.power
 dim(V::SymmetricPower) = num_mons(dim(base_space(V)), power(V))
-DynamicPolynomials.variables(V::SymmetricPower) = variables(base_space(V))
-DynamicPolynomials.nvariables(V::SymmetricPower) = nvariables(base_space(V))
+variables(V::SymmetricPower) = variables(base_space(V))
+nvariables(V::SymmetricPower) = nvariables(base_space(V))
 
 function Base.show(io::IO, V::SymmetricPower; indent::Int=0)
     println(io, " "^indent, "SymmetricPowerSpace")
@@ -55,7 +55,7 @@ SymmetricPowers(
 SymmetricPowers(
     vars::Vector{V},
     powers::AbstractVector{<:Integer}
-) where {V<:Variable} = SymmetricPowers(VectorSpace{V, ComplexF64}(vars), powers)
+) where {V<:Expression} = SymmetricPowers(VectorSpace{V, ComplexF64}(vars), powers)
 
 base_space(V::SymmetricPowers) = V.space
 powers(V::SymmetricPowers) = V.powers

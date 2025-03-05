@@ -15,7 +15,7 @@ end
 MatrixGroupAction(
     G::S,
     vectors::AbstractVector{<:AbstractVector{V}}
-) where {T<:GroupType, F, S <: AbstractGroup{T, F}, V <: Variable} = MatrixGroupAction{T, F, S, V}(G, collect(collect(v) for v in vectors))
+) where {T<:GroupType, F, S <: AbstractGroup{T, F}, V} = MatrixGroupAction{T, F, S, V}(G, collect(collect(v) for v in vectors))
 
 group(a::MatrixGroupAction) = a.group
 action_vectors(a::MatrixGroupAction) = a.vars
@@ -30,7 +30,7 @@ end
 
 
 # TODO: remove and leave MatrixGroupAction only?
-struct ScalingLieGroupAction{F, T <: ScalingLieGroup{F}, V <: Variable} <: AbstractGroupAction{Lie, F}
+struct ScalingLieGroupAction{F, T <: ScalingLieGroup{F}, V} <: AbstractGroupAction{Lie, F}
     group::T
     vars::Vector{V}
 end
@@ -40,9 +40,9 @@ action_vector(a::ScalingLieGroupAction) = a.vars
 DynamicPolynomials.variables(a::ScalingLieGroupAction) = action_vector(a)
 space(a::ScalingLieGroupAction{F}) where F = VectorSpace(F, action_vector(a))
 
-ScalingLieGroupAction(v::Vector{<:Variable}) = ScalingLieGroupAction(ScalingLieGroup{ComplexF64}(length(v)), v)
+ScalingLieGroupAction(v::Vector) = ScalingLieGroupAction(ScalingLieGroup{ComplexF64}(length(v)), v)
 
-function ScalingLieGroupAction(V::AbstractMatrix{<:Variable})
+function ScalingLieGroupAction(V::AbstractMatrix)
     exps = spzeros(Int, size(V, 2), length(V))
     for j in 1:size(V, 2)
         exps[j, ((j-1)*size(V,1)+1):(j*size(V,1))] = ones(Int, size(V, 1))

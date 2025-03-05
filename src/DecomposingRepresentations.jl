@@ -3,10 +3,8 @@ module DecomposingRepresentations
 using SparseArrays: SparseMatrixCSC, sparse, findnz, spzeros
 using LinearAlgebra: Diagonal, nullspace, I, dot, norm
 
-import DynamicPolynomials
-using DynamicPolynomials: @polyvar, Variable, Monomial, Polynomial, Commutative, CreationOrder, Graded, LexOrder, AbstractPolynomialLike, AbstractPolynomial
-using DynamicPolynomials: subs, monomials, coefficients, differentiate, variables, nvariables, MonomialVector
-export @polyvar, Variable, Monomial, Polynomial, Commutative, CreationOrder, Graded, LexOrder
+using SymEngine: Basic, free_symbols
+const Expression = SymEngine.Basic
 
 using Combinatorics: partitions, multiset_permutations, combinations, with_replacement_combinations
 

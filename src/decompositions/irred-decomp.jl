@@ -75,7 +75,7 @@ end
 
 function irreducibles(
     ρ::GroupRepresentation{A, S}
-) where {A<:AbstractGroupAction{Lie}, S<:VectorSpace{<:Variable}}
+) where {A<:AbstractGroupAction{Lie}, S<:VectorSpace}
     ws = weight_structure(action(ρ), space(ρ))
     Xs = positive_root_elements(algebra(action(ρ)))
     hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), ws)

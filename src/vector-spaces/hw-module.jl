@@ -12,8 +12,8 @@ hw_vector(V::HighestWeightModule) = V.hw_vector
 highest_weight(V::HighestWeightModule) = weight(hw_vector(V))
 weight_type(V::HighestWeightModule) = typeof(highest_weight(V))
 vector_type(V::HighestWeightModule) = typeof(vector(hw_vector(V)))
-DynamicPolynomials.variables(V::HighestWeightModule) = variables(vector(hw_vector(V)))
-DynamicPolynomials.nvariables(V::HighestWeightModule) = nvariables(vector(hw_vector(V)))
+variables(V::HighestWeightModule) = free_symbols(vector(hw_vector(V)))
+nvariables(V::HighestWeightModule) = length(variables(vector(hw_vector(V))))
 
 # Weyl dimension formula
 function weyl_dim(λ::Weight, G::AbstractGroup{Lie})
