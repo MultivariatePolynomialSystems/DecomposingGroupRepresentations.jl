@@ -7,7 +7,7 @@ export DirectSum,
     factors
 
 
-struct DirectSum{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractDirectSum{T, F}
+struct DirectSum{F, S<:AbstractVectorSpace{F}} <: AbstractDirectSum{F}
     summands::Vector{S}
 end
 
@@ -17,7 +17,7 @@ dim(V::DirectSum) = sum(dim.(summands(V)))
 basis(V::DirectSum) = vcat([basis(Vi) for Vi in summands(V)]...)
 
 
-struct SymmetricPower{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractSymmetricPower{T, F}
+struct SymmetricPower{F, S<:AbstractVectorSpace{F}} <: AbstractSymmetricPower{F}
     base_space::S
     power::Int
 end
@@ -42,7 +42,7 @@ function Base.show(io::IO, V::SymmetricPower; indent::Int=0)
 end
 
 
-struct SymmetricPowers{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractDirectSum{T, F}
+struct SymmetricPowers{F, S<:AbstractVectorSpace{F}} <: AbstractDirectSum{F}
     space::S
     powers::Vector{Int}
 end
@@ -72,10 +72,10 @@ function Base.show(io::IO, V::SymmetricPowers; indent::Int=0)
 end
 
 
-struct TensorProduct{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractTensorProduct{T, F}
+struct TensorProduct{F, S<:AbstractVectorSpace{F}} <: AbstractTensorProduct{F}
     factors::Vector{S}
 
-    function TensorProduct{T,F,S}(factors::Vector{S}) where {T, F, S<:AbstractVectorSpace{T, F}}
+    function TensorProduct{F,S}(factors::Vector{S}) where {F, S<:AbstractVectorSpace{F}}
         all_vars = ∪([variables(V) for V in factors]...)
         sum_nvars = sum([nvariables(V) for V in factors])
         if length(all_vars) != sum_nvars
@@ -85,12 +85,12 @@ struct TensorProduct{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractTensorProduc
     end
 end
 
-TensorProduct(factors::Vector{S}) where {T, F, S<:AbstractVectorSpace{T, F}} = TensorProduct{T, F, S}(factors)
+TensorProduct(factors::Vector{S}) where {F, S<:AbstractVectorSpace{F}} = TensorProduct{F, S}(factors)
 
 TensorProduct(
-    V::AbstractVectorSpace{T, F},
-    Vs::Vector{<:AbstractVectorSpace{T, F}}
-) where {T, F} = TensorProduct(vcat([V], Vs))
+    V::AbstractVectorSpace{F},
+    Vs::Vector{<:AbstractVectorSpace{F}}
+) where F = TensorProduct(vcat([V], Vs))
 
 factors(V::TensorProduct) = V.factors
 factor(V::TensorProduct, i::Int) = factors(V)[i]
@@ -98,7 +98,7 @@ factors(V::TensorProduct, inds...) = getindex(factors(V), inds...)
 nfactors(V::TensorProduct) = length(factors(V))
 dim(V::TensorProduct) = prod([dim(Vᵢ) for Vᵢ in factors(V)])
 
-function Base.show(io::IO, V::TensorProduct{T, F}; indent::Int=0) where {T,F}
+function Base.show(io::IO, V::TensorProduct{F}; indent::Int=0) where {F}
     println(io, " "^indent, "TensorProduct of dimension $(dim(V)) ($(nfactors(V)) factors)")
     println(io, " "^indent, " element type: ", T)
     print(io, " "^indent, " number type (or field): ", F)

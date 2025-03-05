@@ -164,9 +164,9 @@ algebra(::AbstractLieAlgebraElem) = error("Not implemented")
 
 An abstract type representing a vector space. The type `F` represents the number field (or number type) over which the vector space is defined.
 """
-abstract type AbstractVectorSpace{T, F} end
+abstract type AbstractVectorSpace{F} end
 
-field_type(::Type{<:AbstractVectorSpace{T, F}}) where {T, F} = F
+field_type(::Type{<:AbstractVectorSpace{F}}) where F = F
 
 """
     basis(::AbstractVectorSpace)
@@ -188,7 +188,7 @@ dim(::AbstractVectorSpace) = error("Not implemented")
 
 An abstract type representing a direct sum of vector spaces over the field (or number type) `F`.
 """
-abstract type AbstractDirectSum{T, F} <: AbstractVectorSpace{T, F} end
+abstract type AbstractDirectSum{F} <: AbstractVectorSpace{F} end
 
 """
     summands(::AbstractDirectSum)
@@ -210,7 +210,7 @@ nsummands(::AbstractDirectSum) = error("Not implemented")
 
 An abstract type representing a symmetric power of a vector space over the field (or number type) `F`.
 """
-abstract type AbstractSymmetricPower{T, F} <: AbstractVectorSpace{T, F} end
+abstract type AbstractSymmetricPower{F} <: AbstractVectorSpace{F} end
 
 @doc raw"""
     base_space(::AbstractSymmetricPower) -> AbstractVectorSpace
@@ -232,7 +232,7 @@ power(::AbstractSymmetricPower) = error("Not implemented")
 
 An abstract type representing a tensor product of vector spaces over the field `F`.
 """
-abstract type AbstractTensorProduct{T, F} <: AbstractVectorSpace{T, F} end
+abstract type AbstractTensorProduct{F} <: AbstractVectorSpace{F} end
 
 """
     spaces(::AbstractTensorProduct) -> Tuple{AbstractVectorSpace}

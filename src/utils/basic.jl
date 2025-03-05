@@ -119,59 +119,6 @@ function superscript(n::Integer)::String
     return join(c)
 end
 
-DynamicPolynomials.monomials(
-    F::Vector{<:AbstractPolynomialLike};
-    as_monvec::Bool=true
-) = as_monvec ? MonomialVector(∪([monomials(f) for f in F]...)) : ∪([monomials(f) for f in F]...)
-DynamicPolynomials.monomials(Fs::Vector{<:AbstractPolynomialLike}...) = MonomialVector(∪([monomials(F) for F in Fs]...))
-
-# column corresponds to a polynomial
-function coeffs_matrix(
-    F::Vector{<:AbstractPolynomialLike{T}},
-    mons::AbstractVector{M}
-) where {T, M<:Monomial}
-    C = zeros(T, length(mons), length(F))
-    for (i, f) in enumerate(F)
-        d = Dict{M,T}(zip(monomials(f), coefficients(f)))
-        for (j, mon) in enumerate(mons)
-            C[j, i] = get(d, mon, zero(T))
-        end
-    end
-    return C
-end
-
-# polynomials(
-#     M::AbstractMatrix,
-#     mons::Vector{<:Monomial}
-# ) = [sum(m .* mons) for m in eachcol(M)]
-
-# polynomials(
-#     C::AbstractVector{<:AbstractVector},
-#     mons::Vector{<:Monomial}
-# ) = [sum(c .* mons) for c in C]
-
-polynomials(
-    C::AbstractVector{<:AbstractVector{T}},
-    mons::MonomialVector{V,M}
-) where {V,M,T} = [Polynomial{V,M,T}(c, copy(mons)) for c in C]
-
-function rref(
-    F::Vector{<:AbstractPolynomial{T}}
-) where T
-    mons = monomials(F)
-    M = Matrix(transpose(coeffs_matrix(F, mons)))
-    rref!(M)
-    sparsify!(M, 1e-8)
-    N = filter(row -> !iszero(row), eachrow(M))
-    return polynomials(N, mons)
-end
-
-function zero_combinations(F::Vector{<:AbstractPolynomial}; tol::Real=1e-5)
-    mons = monomials(F; as_monvec=false)
-    M = coeffs_matrix(F, mons)
-    return eachcol(nullspace(M; atol=tol))
-end
-
 # Generates a list of multiexponents of degree @degree in @nvars variables
 function multiexponents(degree::Tv, nvars::Ti) where {Tv<:Integer,Ti<:Integer}
     mexps = [spzeros(Tv, Ti, nvars) for _ in 1:num_mons(nvars, degree)]
@@ -197,4 +144,18 @@ function multiexponents(; degree::Tv, nvars::Ti, upto::Bool=false) where {Tv<:In
         append!(mexps, multiexponents(d, nvars))
     end
     return mexps
+end
+
+function zero_combinations(exprs::Vector{Expression}, F::DataType; tol::Real=1e-5)
+    fs = free_symbols(exprs)
+    nexprs = length(exprs)
+    samples = [[(var, rand(F)) for var in fs] for _ in 1:nexprs]
+    evals = zeros(F, nexprs, nexprs)
+    for i in 1:nexprs
+        for j in 1:nexprs
+            evals[i,j] = subs(exprs[j], samples[i])
+        end
+    end
+    N = nullspace(evals; atol=tol)
+    return eachcol(N)
 end

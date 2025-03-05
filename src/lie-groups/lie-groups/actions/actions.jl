@@ -19,7 +19,7 @@ MatrixGroupAction(
 
 group(a::MatrixGroupAction) = a.group
 action_vectors(a::MatrixGroupAction) = a.vars
-DynamicPolynomials.variables(a::MatrixGroupAction) = vcat(action_vectors(a)...)
+variables(a::MatrixGroupAction) = vcat(action_vectors(a)...)
 space(a::MatrixGroupAction{T, F}) where {T,F} = VectorSpace(F, variables(a))
 
 function Base.show(io::IO, a::MatrixGroupAction)
@@ -37,7 +37,7 @@ end
 
 group(a::ScalingLieGroupAction) = a.group
 action_vector(a::ScalingLieGroupAction) = a.vars
-DynamicPolynomials.variables(a::ScalingLieGroupAction) = action_vector(a)
+variables(a::ScalingLieGroupAction) = action_vector(a)
 space(a::ScalingLieGroupAction{F}) where F = VectorSpace(F, action_vector(a))
 
 ScalingLieGroupAction(v::Vector) = ScalingLieGroupAction(ScalingLieGroup{ComplexF64}(length(v)), v)
@@ -58,10 +58,9 @@ MatrixGroupAction(a::ScalingLieGroupAction) = MatrixGroupAction(group(a), [actio
 function show_action(io::IO, a::ScalingLieGroupAction; offset::Int=0)
     U = exponents(group(a))
     if size(U, 1) == 1
-        @polyvar λ
-        λ = [λ]
+        λ = [symbols("λ")]
     else
-        @polyvar λ[1:size(U, 1)]
+        λ = [symbols("λ$(subscript(j))") for j in 1:size(U, 1)]
     end
     action = []
     vars = action_vector(a)

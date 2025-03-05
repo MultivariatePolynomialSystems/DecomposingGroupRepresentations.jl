@@ -4,7 +4,7 @@ using SparseArrays: SparseMatrixCSC, sparse, findnz, spzeros
 using LinearAlgebra: Diagonal, nullspace, I, dot, norm
 
 using SymEngine: Basic, free_symbols
-const Expression = SymEngine.Basic
+const Expression = Basic
 
 using Combinatorics: partitions, multiset_permutations, combinations, with_replacement_combinations
 

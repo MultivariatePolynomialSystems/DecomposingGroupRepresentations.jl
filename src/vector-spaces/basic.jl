@@ -3,7 +3,7 @@ export MatrixVectorSpace,
     VariableSpace
 
 
-struct MatrixVectorSpace{F} <: AbstractVectorSpace{Vector{F}, F}
+struct MatrixVectorSpace{F} <: AbstractVectorSpace{F}
     matrix::Matrix{F}
 end
 
@@ -26,77 +26,73 @@ function Base.:∩(V₁::MatrixVectorSpace, V₂::MatrixVectorSpace)
     return MatrixVectorSpace(matrix(V₁)*N[1:dim(V₁), :]) # TODO: pick V with smaller dim
 end
 
+
+struct VariableSpace{F} <: AbstractVectorSpace{F}
+    variables::Vector{Expression}
+
+    function VariableSpace(vars::AbstractVector{Expression})
+        v = Vector{Expression}(undef, length(vars))
+        for (i, var) in enumerate(vars)
+            fs = free_symbols(var)
+            @assert length(fs) == 1 && fs[1] == var
+            v[i] = var
+        end
+        return new{F}(v)
+    end
+end
+
+variables(V::VariableSpace) = V.variables
+nvariables(V::VariableSpace) = length(variables(V))
+basis(V::VariableSpace) = variables(V)
+basis(V::VariableSpace, i::Integer) = basis(V)[i]
+dim(V::VariableSpace) = length(basis(V))
+Base.iszero(V::VariableSpace) = dim(V) == 0
+
 # TODO: add gens?
-struct VectorSpace{T, F} <: AbstractVectorSpace{T, F}
-    basis::Vector{T}
+struct ExpressionSpace{F} <: AbstractVectorSpace{F}
+    gens::Vector{Expression}
 end
 
-VectorSpace{T, F}() where {T, F} = VectorSpace{T, F}(Vector{T}())
-VectorSpace{T, F}(v::T) where {T, F} = VectorSpace{T, F}([v])
-VectorSpace(F::DataType, vars::Vector{T}) where T<:Variable = VectorSpace{T, F}(unique(vars))
-VectorSpace(F::DataType, vs::Vector{T}) where T = VectorSpace{T, F}(vs)
-VectorSpace(F::DataType, polys::Vector{T}) where T<:Polynomial = VectorSpace{T,F}(rref(polys))
+ExpressionSpace{F}() where F = ExpressionSpace{F}(Vector{Expression}())
+ExpressionSpace{F}(v::Expression) where F = ExpressionSpace{F}([v])
 
-basis(V::VectorSpace) = V.basis
-basis(V::VectorSpace, i::Integer) = basis(V)[i]
-dim(V::VectorSpace) = length(basis(V))
+gens(V::ExpressionSpace) = V.gens
+basis(V::ExpressionSpace) = gens(V) # FIXME
+basis(V::ExpressionSpace, i::Integer) = basis(V)[i]
+dim(V::ExpressionSpace) = length(basis(V))
+Base.iszero(V::ExpressionSpace) = dim(V) == 0
 
-function Base.show(io::IO, V::VectorSpace{T, F}; indent::Int=0) where {T, F}
-    println(io, " "^indent, "VectorSpace of dimension $(dim(V))")
-    println(io, " "^indent, " element type: $(T)")
+function Base.show(io::IO, V::ExpressionSpace{F}; indent::Int=0) where F
+    println(io, " "^indent, "ExpressionSpace of with $(dim(V)) generators")
     println(io, " "^indent, " number type (or field): $(F)")
-    print(io, " "^indent, " basis: ", join(map(repr, basis(V)), ", "))
+    print(io, " "^indent, " generators: ", join(map(repr, basis(V)), ", "))
 end
 
-field_space(::Type{VectorSpace{T, F}}) where {T, F} = VectorSpace{T, F}(one(T))
-DynamicPolynomials.variables(V::VectorSpace{<:Variable}) = basis(V)
-DynamicPolynomials.nvariables(V::VectorSpace{<:Variable}) = dim(V)
-DynamicPolynomials.variables(V::VectorSpace{<:Polynomial}) = variables(basis(V))
-DynamicPolynomials.nvariables(V::VectorSpace{<:Polynomial}) = nvariables(basis(V))
-Base.iszero(V::VectorSpace) = dim(V) == 0
-Base.rand(V::VectorSpace{T, F}) where {T, F} = sum(rand(F, dim(V)) .* basis(V))
-Base.push!(V::VectorSpace{T}, v::T) where T = push!(V.basis, v)
-Base.convert(::Type{VectorSpace{T₁, F}}, V::VectorSpace{T₂, F}) where {T₁, T₂, F} = VectorSpace{T₁, F}(convert(Vector{T₁}, basis(V)))
+field_space(::Type{ExpressionSpace{F}}) where F = ExpressionSpace{F}(Expression(1))
+variables(V::ExpressionSpace) = free_symbols(basis(V))
+nvariables(V::ExpressionSpace) = length(variables(V))
+Base.push!(V::ExpressionSpace, v::Expression) = push!(V.basis, v)
+
+Base.rand(V::AbstractVectorSpace{F}) where F = sum(rand(F, dim(V)) .* basis(V))
+
+# Base.convert(::Type{VectorSpace{T₁, F}}, V::VectorSpace{T₂, F}) where {T₁, T₂, F} = VectorSpace{T₁, F}(convert(Vector{T₁}, basis(V)))
 
 Base.:+(
-    Vs::VectorSpace{T, F}...
-) where {T<:Variable, F} = VectorSpace{T,F}(∪([basis(V) for V in Vs]...))
-
-function Base.:+(
-    Vs::VectorSpace{T, F}...;
-    in_rref::Bool=true
-) where {T<:Polynomial, F}
-    if in_rref
-        return VectorSpace{T,F}(rref(vcat([basis(V) for V in Vs]...)))
-    end
-    return VectorSpace{T,F}(vcat([basis(V) for V in Vs]...))
-end
-
-function Base.:*(
-    Vs::Vector{VectorSpace{T, F}};
-    in_rref::Bool=true
-) where {T<:Polynomial, F}
-    in_rref && return VectorSpace{T, F}(rref([prod(fs) for fs in product([basis(V) for V in Vs]...)][:]))
-    return VectorSpace{T, F}([prod(fs) for fs in product([basis(V) for V in Vs]...)][:])
-end
+    Vs::ExpressionSpace{F}...
+) where F = ExpressionSpace{F}(vcat([gens(V) for V in Vs]...))
 
 Base.:*(
-    Vs::Vector{VectorSpace{T, F}},
+    Vs::Vector{ExpressionSpace{F}}
+) where F = ExpressionSpace{F}([prod(fs) for fs in product([basis(V) for V in Vs]...)][:])
+Base.:*(
+    Vs::Vector{ExpressionSpace{F}},
     muls::Vector{Int}
-) where {T<:Polynomial, F} = *(vcat([fill(V, mul) for (V, mul) in zip(Vs, muls)]...))
+) where F = *(vcat([fill(V, mul) for (V, mul) in zip(Vs, muls)]...))
 
 function Base.:∩(
-    V₁::VectorSpace{<:AbstractPolynomialLike, F},
-    V₂::VectorSpace{<:AbstractPolynomialLike, F};
+    V₁::ExpressionSpace{F},
+    V₂::ExpressionSpace{F};
     tol::Real=1e-5
 ) where F
-    all_mons = monomials(basis(V₁), basis(V₂))
-    M₁ = coeffs_matrix(basis(V₁), all_mons)
-    M₂ = coeffs_matrix(basis(V₂), all_mons)
-    N = nullspace(hcat(M₁, M₂); atol=tol)
-    size(N, 2) == 0 && return nothing
-    N = hcat([div_by_lowest_magnitude(N[:,i], 1e-8) for i in 1:size(N, 2)]...)
-    sparsify!(N, tol)
-    Vᵢ = M₁*N[1:dim(V₁), :]
-    return VectorSpace(F, [sum(c .* all_mons) for c in eachcol(Vᵢ)])
+    
 end
