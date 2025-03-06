@@ -1,7 +1,7 @@
 export HighestWeightModule
 
 
-struct HighestWeightModule{T, F, A<:AbstractGroupAction{Lie, F}, Wv<:WeightVector{T}} <: AbstractVectorSpace{T, F}
+struct HighestWeightModule{T, F, A<:AbstractGroupAction{Lie, F}, Wv<:WeightVector{T}} <: AbstractVectorSpace{F}
     action::A
     hw_vector::Wv
 end
@@ -13,7 +13,7 @@ highest_weight(V::HighestWeightModule) = weight(hw_vector(V))
 weight_type(V::HighestWeightModule) = typeof(highest_weight(V))
 vector_type(V::HighestWeightModule) = typeof(vector(hw_vector(V)))
 variables(V::HighestWeightModule) = free_symbols(vector(hw_vector(V)))
-nvariables(V::HighestWeightModule) = length(variables(vector(hw_vector(V))))
+nvariables(V::HighestWeightModule) = length(variables(V))
 
 # Weyl dimension formula
 function weyl_dim(λ::Weight, G::AbstractGroup{Lie})
@@ -63,7 +63,7 @@ end
 function weight_structure(
     V::HighestWeightModule{T, F}
 ) where {T, F}
-    ws = WeightStructure{VectorSpace{T,F}, weight_type(V)}()
+    ws = WeightStructure{ExpressionSpace{F}, weight_type(V)}()
     for wv in basis(V; as_weight_vectors=true)
         push!(ws, wv)
     end

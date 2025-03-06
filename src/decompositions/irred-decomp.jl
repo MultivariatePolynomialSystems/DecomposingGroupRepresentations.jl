@@ -6,15 +6,16 @@ function ws_nullspace(
 )
     B = basis(space(ws))
     Bₐ = [act(X, a, f) for f in B]
-    if all(f -> isapprox(f, zero(f), atol=tol), Bₐ)
+    if all(f -> isapprox(f, zero(f); atol=tol), Bₐ)
         return ws
     end
     dim(ws) == 1 && return nothing
-    Cs = zero_combinations(Bₐ)
+    F = field_type(ws)
+    Cs = zero_combinations(Bₐ, F; tol=tol)
     isempty(Cs) && return nothing
     return WeightSpace(
         weight(ws),
-        VectorSpace(field_type(ws), [sum(sparsify!(div_by_lowest_magnitude(c, tol), tol) .* B) for c in Cs]; in_rref=false)
+        ExpressionSpace{F}([sum(sparsify!(div_by_lowest_magnitude(c, tol), tol) .* B) for c in Cs])
         )
 end
 
@@ -75,7 +76,7 @@ end
 
 function irreducibles(
     ρ::GroupRepresentation{A, S}
-) where {A<:AbstractGroupAction{Lie}, S<:VectorSpace}
+) where {A<:AbstractGroupAction{Lie}, S<:VariableSpace}
     ws = weight_structure(action(ρ), space(ρ))
     Xs = positive_root_elements(algebra(action(ρ)))
     hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), ws)
@@ -84,7 +85,7 @@ end
 
 function irreducibles(
     ρ::GroupRepresentation{A, S}
-) where {T, F, A<:AbstractGroupAction{Lie}, S<:SymmetricPower{T, F, <:HighestWeightModule}}
+) where {F, A<:AbstractGroupAction{Lie}, S<:SymmetricPower{F, <:HighestWeightModule}}
     V = space(ρ)
     ws = weight_structure(base_space(V))
     sym_ws = sym(ws, power(V))
@@ -116,7 +117,7 @@ end
 
 function irreducibles(
     ρ::GroupRepresentation{A, S}
-) where {T, F, A<:AbstractGroupAction{Lie}, S<:TensorProduct{T, F, <:HighestWeightModule}}
+) where {F, A<:AbstractGroupAction{Lie}, S<:TensorProduct{F, <:HighestWeightModule}}
     V = space(ρ)
     if nfactors(V) == 2
         ws₁, ws₂ = weight_structure(factor(V, 1)), weight_structure(factor(V, 2)) # TODO: save once computed

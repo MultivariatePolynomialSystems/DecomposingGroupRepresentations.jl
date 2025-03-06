@@ -25,7 +25,7 @@ end
 SymmetricPower(
     vars::Vector{V},
     power::Integer
-) where {V<:Expression} = SymmetricPower(VectorSpace{V, ComplexF64}(vars), power)
+) where {V<:Expression} = SymmetricPower(VariableSpace{ComplexF64}(vars), power)
 
 base_space(V::SymmetricPower) = V.base_space
 power(V::SymmetricPower) = V.power
@@ -98,8 +98,7 @@ factors(V::TensorProduct, inds...) = getindex(factors(V), inds...)
 nfactors(V::TensorProduct) = length(factors(V))
 dim(V::TensorProduct) = prod([dim(Vᵢ) for Vᵢ in factors(V)])
 
-function Base.show(io::IO, V::TensorProduct{F}; indent::Int=0) where {F}
+function Base.show(io::IO, V::TensorProduct{F}; indent::Int=0) where F
     println(io, " "^indent, "TensorProduct of dimension $(dim(V)) ($(nfactors(V)) factors)")
-    println(io, " "^indent, " element type: ", T)
     print(io, " "^indent, " number type (or field): ", F)
 end

@@ -30,16 +30,18 @@ end
 struct VariableSpace{F} <: AbstractVectorSpace{F}
     variables::Vector{Expression}
 
-    function VariableSpace(vars::AbstractVector{Expression})
+    function VariableSpace{F}(vars::AbstractVector{Expression}) where F
         v = Vector{Expression}(undef, length(vars))
         for (i, var) in enumerate(vars)
             fs = free_symbols(var)
             @assert length(fs) == 1 && fs[1] == var
             v[i] = var
         end
-        return new{F}(v)
+        return new{F}(unique(v))
     end
 end
+
+VariableSpace{F}(var::Expression) where F = VariableSpace{F}([var])
 
 variables(V::VariableSpace) = V.variables
 nvariables(V::VariableSpace) = length(variables(V))
@@ -47,6 +49,7 @@ basis(V::VariableSpace) = variables(V)
 basis(V::VariableSpace, i::Integer) = basis(V)[i]
 dim(V::VariableSpace) = length(basis(V))
 Base.iszero(V::VariableSpace) = dim(V) == 0
+Base.:+(V::VariableSpace{F}, W::VariableSpace{F}) where F = VariableSpace{F}(∪(variables(V), variables(W)))
 
 # TODO: add gens?
 struct ExpressionSpace{F} <: AbstractVectorSpace{F}
@@ -76,6 +79,8 @@ Base.push!(V::ExpressionSpace, v::Expression) = push!(V.basis, v)
 Base.rand(V::AbstractVectorSpace{F}) where F = sum(rand(F, dim(V)) .* basis(V))
 
 # Base.convert(::Type{VectorSpace{T₁, F}}, V::VectorSpace{T₂, F}) where {T₁, T₂, F} = VectorSpace{T₁, F}(convert(Vector{T₁}, basis(V)))
+Base.convert(::Type{ExpressionSpace{F}}, V::VariableSpace{F}) where F = ExpressionSpace{F}(basis(V))
+Base.convert(::Type{VariableSpace{F}}, V::ExpressionSpace{F}) where F = VariableSpace{F}(basis(V))
 
 Base.:+(
     Vs::ExpressionSpace{F}...
@@ -90,9 +95,10 @@ Base.:*(
 ) where F = *(vcat([fill(V, mul) for (V, mul) in zip(Vs, muls)]...))
 
 function Base.:∩(
-    V₁::ExpressionSpace{F},
-    V₂::ExpressionSpace{F};
+    V₁::Union{VariableSpace{F}, ExpressionSpace{F}},
+    V₂::Union{VariableSpace{F}, ExpressionSpace{F}};
     tol::Real=1e-5
 ) where F
-    
+    zcombs = zero_combinations(vcat(basis(V₁), basis(V₂)), F; tol=tol)
+    return ExpressionSpace{F}([sum(c[1:dim(V₁)] .* basis(V₁)) for c in zcombs])
 end

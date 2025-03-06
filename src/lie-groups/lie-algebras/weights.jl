@@ -210,8 +210,8 @@ function tensor(ws₁::WeightStructure{T,W}, ws₂::WeightStructure{T,W}) where 
     end
     new_ws = WeightStructure{T,W}()
     for (weight, combs) in new_weights_dict
-        w_sps = [*([weight_space(ws₁, comb[1]; as_space=true), weight_space(ws₂, comb[2]; as_space=true)]; in_rref=false) for comb in combs]
-        total_ws = +(w_sps...; in_rref=false)
+        w_sps = [*([weight_space(ws₁, comb[1]; as_space=true), weight_space(ws₂, comb[2]; as_space=true)]) for comb in combs]
+        total_ws = +(w_sps...)
         push!(new_ws, WeightSpace(weight, total_ws))
     end
     return new_ws

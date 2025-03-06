@@ -18,7 +18,6 @@ Base.rand(
 ) = GroupElem(G, exp(matrix(rand(algebra(G)))))
 function Base.rand(G::LieGroup{F}) where F
     if name(G) == "SO(3)"
-        println(F)
         return GroupElem(G, rand_rotation(F))
     end
 end

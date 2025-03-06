@@ -3,7 +3,8 @@ module DecomposingRepresentations
 using SparseArrays: SparseMatrixCSC, sparse, findnz, spzeros
 using LinearAlgebra: Diagonal, nullspace, I, dot, norm
 
-using SymEngine: Basic, free_symbols
+using SymEngine: Basic, free_symbols, @vars, subs, symbols
+export Basic, @vars, symbols
 const Expression = Basic
 
 using Combinatorics: partitions, multiset_permutations, combinations, with_replacement_combinations
