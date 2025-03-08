@@ -6,6 +6,8 @@ function ws_nullspace(
 )
     B = basis(space(ws))
     Bₐ = [act(X, a, f) for f in B]
+    println([depth(f) for f in Bₐ])
+    # println(Bₐ[1])
     if all(f -> isapprox(f, zero(f); atol=tol), Bₐ)
         return ws
     end
@@ -15,7 +17,7 @@ function ws_nullspace(
     isempty(Cs) && return nothing
     return WeightSpace(
         weight(ws),
-        ExpressionSpace{F}([sum(sparsify!(div_by_lowest_magnitude(c, tol), tol) .* B) for c in Cs])
+        PolySpace{F}([sum(c .* B) for c in Cs])
         )
 end
 

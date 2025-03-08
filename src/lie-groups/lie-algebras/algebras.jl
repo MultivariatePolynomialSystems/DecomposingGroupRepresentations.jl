@@ -156,9 +156,9 @@ nweights(alg::LieAlgebra) = nweights(alg.weight_structure)
 hw_spaces(alg::LieAlgebra) = alg.hw_spaces
 
 
-struct SumLieAlgebra{F} <: AbstractLieAlgebra{F}
+struct SumLieAlgebra{F, T<:AbstractLieAlgebra{F}} <: AbstractLieAlgebra{F}
     name::String
-    algs::Vector{AbstractLieAlgebra{F}}
+    algs::Vector{T}
 end
 
 SumLieAlgebra(

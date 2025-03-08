@@ -5,6 +5,7 @@ export Weight,
     WeightSpace,
     space,
     WeightStructure,
+    weights,
     weight_space,
     sym
 
@@ -143,7 +144,7 @@ Base.getindex(ws::WeightStructure, i::Integer) = ws[weight(ws, i)]
 Base.setindex!(ws::WeightStructure, ws_new::WeightSpace, weight::Weight) = ws.dict[weight] = ws_new
 Base.haskey(ws::WeightStructure, w::Weight) = haskey(ws.dict, w)
 zero_weight(ws::WeightStructure) = zero(first(weights(ws)))
-field_space(::WeightStructure{T}) where {T} = field_space(T)
+field_space(ws::WeightStructure{T}) where {T} = field_space(space(first(values(ws.dict))))
 field_type(::WeightStructure{T}) where {T} = field_type(T)
 
 function Base.show(io::IO, ::MIME"text/plain", ws::WeightStructure)

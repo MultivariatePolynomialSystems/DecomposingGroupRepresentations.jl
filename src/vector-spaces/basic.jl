@@ -27,78 +27,107 @@ function Base.:∩(V₁::MatrixVectorSpace, V₂::MatrixVectorSpace)
 end
 
 
-struct VariableSpace{F} <: AbstractVectorSpace{F}
-    variables::Vector{Expression}
+struct VariableSpace{F, T<:Variable} <: AbstractVectorSpace{F}
+    vars::Vector{T}
 
-    function VariableSpace{F}(vars::AbstractVector{Expression}) where F
-        v = Vector{Expression}(undef, length(vars))
-        for (i, var) in enumerate(vars)
-            fs = free_symbols(var)
-            @assert length(fs) == 1 && fs[1] == var
-            v[i] = var
-        end
-        return new{F}(unique(v))
-    end
+    VariableSpace{F, T}(vars::Vector{T}) where {F, T<:Variable} = new{F, T}(unique(vars))
 end
 
-VariableSpace{F}(var::Expression) where F = VariableSpace{F}([var])
+VariableSpace{F, T}(var::T) where {F, T} = VariableSpace{F, T}([var])
+VariableSpace{F}(vars::Vector{T}) where {F, T<:Variable} = VariableSpace{F, T}(vars)
 
-variables(V::VariableSpace) = V.variables
-nvariables(V::VariableSpace) = length(variables(V))
+DynamicPolynomials.variables(V::VariableSpace) = V.vars
+DynamicPolynomials.nvariables(V::VariableSpace) = length(variables(V))
 basis(V::VariableSpace) = variables(V)
 basis(V::VariableSpace, i::Integer) = basis(V)[i]
 dim(V::VariableSpace) = length(basis(V))
 Base.iszero(V::VariableSpace) = dim(V) == 0
 Base.:+(V::VariableSpace{F}, W::VariableSpace{F}) where F = VariableSpace{F}(∪(variables(V), variables(W)))
 
-# TODO: add gens?
-struct ExpressionSpace{F} <: AbstractVectorSpace{F}
-    gens::Vector{Expression}
+function Base.show(io::IO, V::VariableSpace{F}; indent::Int=0) where F
+    println(io, " "^indent, "VariableSpace with $(dim(V)) variables")
+    println(io, " "^indent, " number type (or field): $(F)")
+    print(io, " "^indent, " variables: ", join(map(repr, basis(V)), ", "))
 end
 
-ExpressionSpace{F}() where F = ExpressionSpace{F}(Vector{Expression}())
-ExpressionSpace{F}(v::Expression) where F = ExpressionSpace{F}([v])
+# TODO: add gens?
+struct PolySpace{F} <: AbstractVectorSpace{F}
+    gens::Vector{AbstractSLP}
+end
 
-gens(V::ExpressionSpace) = V.gens
-basis(V::ExpressionSpace) = gens(V) # FIXME
-basis(V::ExpressionSpace, i::Integer) = basis(V)[i]
-dim(V::ExpressionSpace) = length(basis(V))
-Base.iszero(V::ExpressionSpace) = dim(V) == 0
+PolySpace{F}() where F = PolySpace{F}(Vector{AbstractSLP}())
+PolySpace{F}(v::AbstractSLP) where F = PolySpace{F}([v])
+PolySpace{F}(polys::Vector{<:Polynomial}) where F = PolySpace{F}(Poly.(polys))
 
-function Base.show(io::IO, V::ExpressionSpace{F}; indent::Int=0) where F
-    println(io, " "^indent, "ExpressionSpace of with $(dim(V)) generators")
+gens(V::PolySpace) = V.gens
+basis(V::PolySpace) = gens(V) # FIXME
+basis(V::PolySpace, i::Integer) = basis(V)[i]
+dim(V::PolySpace) = length(basis(V))
+Base.iszero(V::PolySpace) = dim(V) == 0
+
+function Base.show(io::IO, V::PolySpace{F}; indent::Int=0) where F
+    println(io, " "^indent, "PolySpace with $(dim(V)) generators")
     println(io, " "^indent, " number type (or field): $(F)")
     print(io, " "^indent, " generators: ", join(map(repr, basis(V)), ", "))
 end
 
-field_space(::Type{ExpressionSpace{F}}) where F = ExpressionSpace{F}(Expression(1))
-variables(V::ExpressionSpace) = free_symbols(basis(V))
-nvariables(V::ExpressionSpace) = length(variables(V))
-Base.push!(V::ExpressionSpace, v::Expression) = push!(V.basis, v)
+field_space(V::PolySpace{F}) where F = PolySpace{F}(one(first(gens(V))))
+DynamicPolynomials.variables(V::PolySpace) = ∪([variables(p) for p in gens(V)]...)
+DynamicPolynomials.nvariables(V::PolySpace) = length(variables(V))
+Base.push!(V::PolySpace, v::AbstractSLP) = push!(V.basis, v)
 
 Base.rand(V::AbstractVectorSpace{F}) where F = sum(rand(F, dim(V)) .* basis(V))
+Base.rand(V::VariableSpace{F}) where F = Poly(sum(rand(F, dim(V)) .* basis(V)))
 
-# Base.convert(::Type{VectorSpace{T₁, F}}, V::VectorSpace{T₂, F}) where {T₁, T₂, F} = VectorSpace{T₁, F}(convert(Vector{T₁}, basis(V)))
-Base.convert(::Type{ExpressionSpace{F}}, V::VariableSpace{F}) where F = ExpressionSpace{F}(basis(V))
-Base.convert(::Type{VariableSpace{F}}, V::ExpressionSpace{F}) where F = VariableSpace{F}(basis(V))
+Base.convert(::Type{PolySpace{F}}, V::VariableSpace{F}) where F = PolySpace{F}(Poly.(basis(V)))
 
 Base.:+(
-    Vs::ExpressionSpace{F}...
-) where F = ExpressionSpace{F}(vcat([gens(V) for V in Vs]...))
+    Vs::PolySpace{F}...
+) where F = PolySpace{F}(vcat([gens(V) for V in Vs]...))
 
 Base.:*(
-    Vs::Vector{ExpressionSpace{F}}
-) where F = ExpressionSpace{F}([prod(fs) for fs in product([basis(V) for V in Vs]...)][:])
+    Vs::Vector{PolySpace{F}}
+) where F = PolySpace{F}([prod(fs) for fs in product([basis(V) for V in Vs]...)][:])
 Base.:*(
-    Vs::Vector{ExpressionSpace{F}},
+    Vs::Vector{PolySpace{F}},
     muls::Vector{Int}
 ) where F = *(vcat([fill(V, mul) for (V, mul) in zip(Vs, muls)]...))
 
 function Base.:∩(
-    V₁::Union{VariableSpace{F}, ExpressionSpace{F}},
-    V₂::Union{VariableSpace{F}, ExpressionSpace{F}};
+    V₁::PolySpace{F},
+    V₂::PolySpace{F};
     tol::Real=1e-5
 ) where F
     zcombs = zero_combinations(vcat(basis(V₁), basis(V₂)), F; tol=tol)
-    return ExpressionSpace{F}([sum(c[1:dim(V₁)] .* basis(V₁)) for c in zcombs])
+    return PolySpace{F}([sum(c[1:dim(V₁)] .* basis(V₁)) for c in zcombs])
+end
+
+function Base.:∩(
+    V₁::VariableSpace{F},
+    V₂::VariableSpace{F};
+    tol::Real=1e-5
+) where F
+    zcombs = zero_combinations(vcat(basis(V₁), basis(V₂)), F; tol=tol)
+    # println(zcombs)
+    return PolySpace{F}([sum(c[1:dim(V₁)] .* basis(V₁)) for c in zcombs])
+end
+
+function Base.:∩(
+    V₁::PolySpace{F},
+    V₂::VariableSpace{F};
+    tol::Real=1e-5
+) where F
+    zcombs = zero_combinations(vcat(basis(V₁), Poly.(basis(V₂))), F; tol=tol)
+    # println(zcombs)
+    return PolySpace{F}([sum(c[1:dim(V₁)] .* basis(V₁)) for c in zcombs])
+end
+
+function Base.:∩(
+    V₁::VariableSpace{F},
+    V₂::PolySpace{F};
+    tol::Real=1e-5
+) where F
+    zcombs = zero_combinations(vcat(basis(V₁), basis(V₂)), F; tol=tol)
+    # println(zcombs)
+    return PolySpace{F}([sum(c[1:dim(V₁)] .* basis(V₁)) for c in zcombs])
 end

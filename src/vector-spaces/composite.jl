@@ -4,7 +4,8 @@ export DirectSum,
     power,
     SymmetricPowers,
     TensorProduct,
-    factors
+    factors,
+    factor
 
 
 struct DirectSum{F, S<:AbstractVectorSpace{F}} <: AbstractDirectSum{F}
@@ -25,16 +26,16 @@ end
 SymmetricPower(
     vars::Vector{V},
     power::Integer
-) where {V<:Expression} = SymmetricPower(VariableSpace{ComplexF64}(vars), power)
+) where {V<:Variable} = SymmetricPower(VariableSpace{ComplexF64}(vars), power)
 
 base_space(V::SymmetricPower) = V.base_space
 power(V::SymmetricPower) = V.power
 dim(V::SymmetricPower) = num_mons(dim(base_space(V)), power(V))
-variables(V::SymmetricPower) = variables(base_space(V))
-nvariables(V::SymmetricPower) = nvariables(base_space(V))
+DynamicPolynomials.variables(V::SymmetricPower) = variables(base_space(V))
+DynamicPolynomials.nvariables(V::SymmetricPower) = nvariables(base_space(V))
 
 function Base.show(io::IO, V::SymmetricPower; indent::Int=0)
-    println(io, " "^indent, "SymmetricPowerSpace")
+    println(io, " "^indent, "SymmetricPower of dimension $(dim(V))")
     println(io, " "^indent, " base space:")
     show(io, base_space(V); indent=indent+2)
     println(io)
@@ -55,7 +56,7 @@ SymmetricPowers(
 SymmetricPowers(
     vars::Vector{V},
     powers::AbstractVector{<:Integer}
-) where {V<:Expression} = SymmetricPowers(VectorSpace{V, ComplexF64}(vars), powers)
+) where {V<:Variable} = SymmetricPowers(VariableSpace{ComplexF64}(vars), powers)
 
 base_space(V::SymmetricPowers) = V.space
 powers(V::SymmetricPowers) = V.powers

@@ -12,8 +12,8 @@ hw_vector(V::HighestWeightModule) = V.hw_vector
 highest_weight(V::HighestWeightModule) = weight(hw_vector(V))
 weight_type(V::HighestWeightModule) = typeof(highest_weight(V))
 vector_type(V::HighestWeightModule) = typeof(vector(hw_vector(V)))
-variables(V::HighestWeightModule) = free_symbols(vector(hw_vector(V)))
-nvariables(V::HighestWeightModule) = length(variables(V))
+DynamicPolynomials.variables(V::HighestWeightModule) = variables(vector(hw_vector(V)))
+DynamicPolynomials.nvariables(V::HighestWeightModule) = length(variables(V))
 
 # Weyl dimension formula
 function weyl_dim(λ::Weight, G::AbstractGroup{Lie})
@@ -35,14 +35,14 @@ function Base.show(io::IO, V::HighestWeightModule)
 end
 
 function orbit(
-    wv::T,
+    wv::WeightVector,
     action::AbstractGroupAction{Lie},
     processed_weights::Set{<:Weight};
     tol::Real=1e-5
-) where T<:WeightVector
-    isapprox(vector(wv), zero(vector(wv)); atol=tol) && return T[]
+)
+    isapprox(vector(wv), zero(vector(wv)); atol=tol) && return WeightVector[]
     push!(processed_weights, weight(wv))
-    orbit_vectors = [wv]
+    orbit_vectors = WeightVector[wv]
     for nre in negative_root_elements(algebra(action))
         if weight(wv) + root(nre) ∉ processed_weights
             new_wv = act(nre, action, wv)
@@ -63,7 +63,7 @@ end
 function weight_structure(
     V::HighestWeightModule{T, F}
 ) where {T, F}
-    ws = WeightStructure{ExpressionSpace{F}, weight_type(V)}()
+    ws = WeightStructure{PolySpace{F}, weight_type(V)}()
     for wv in basis(V; as_weight_vectors=true)
         push!(ws, wv)
     end

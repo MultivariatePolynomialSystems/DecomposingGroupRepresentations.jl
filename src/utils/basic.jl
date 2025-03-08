@@ -2,7 +2,6 @@ export rand_rotation, sparsify!
 export rref, monomials, coeffs_matrix, polynomials
 export num_mons
 export superscript, subscript
-export zero_combinations
 
 a2p(M::AbstractMatrix{<:Number}) = [M; ones(eltype(M), 1, size(M, 2))]
 p2a(M::AbstractMatrix{<:Number}) = (M./M[end:end,:])[1:end-1,:]
@@ -145,42 +144,4 @@ function multiexponents(; degree::Tv, nvars::Ti, upto::Bool=false) where {Tv<:In
         append!(mexps, multiexponents(d, nvars))
     end
     return mexps
-end
-
-function  evaluate(expr::Expression, F::DataType; nsamples::Int=1)
-    vars = free_symbols(expr)
-    sbs = [Dict(zip(vars, rand(F, length(vars)))) for _ in 1:nsamples]
-    evals = zeros(F, nsamples)
-    for i in 1:nsamples
-        evals[i] = subs(expr, sbs[i])
-    end
-    return evals
-end
-
-function evaluate(exprs::Vector{Expression}, F::DataType; nsamples::Int=1)
-    vars = free_symbols(exprs)
-    nexprs, nvars = length(exprs), length(vars)
-    sbs = [Dict(zip(vars, rand(F, nvars))) for _ in 1:nsamples]
-    evals = zeros(F, nexprs, nsamples)
-    for i in 1:nsamples
-        for j in 1:nexprs
-            evals[i,j] = subs(exprs[j], sbs[i])
-        end
-    end
-    return evals
-end
-
-function zero_combinations(exprs::Vector{Expression}, F::DataType; tol::Real=1e-5)
-    evals = evaluate(exprs, F; nsamples=length(exprs))
-    N = nullspace(evals; atol=tol)
-    return eachcol(N)
-end
-
-function Base.isapprox(f::Expression, g::Expression; nsamples::Int=1, kwargs...)
-    vars = free_symbols(f) ∪ free_symbols(g)
-    isempty(vars) && return isapprox(convert(ComplexF64, f), convert(ComplexF64, g); kwargs...)
-    sbs = [Dict(zip(vars, rand(ComplexF64, length(vars)))) for _ in 1:nsamples]
-    evals_f = [convert(ComplexF64, subs(f, sb)) for sb in sbs]
-    evals_g = [convert(ComplexF64, subs(g, sb)) for sb in sbs]
-    return isapprox(evals_f, evals_g; kwargs...)
 end
