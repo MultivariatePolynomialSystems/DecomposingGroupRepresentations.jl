@@ -1,4 +1,5 @@
-export IrreducibleRepresentation
+export IrreducibleRepresentation,
+    highest_weight
 
 
 struct IrreducibleRepresentation{

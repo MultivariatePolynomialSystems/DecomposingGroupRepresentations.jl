@@ -48,32 +48,6 @@ function irreducibles(
 end
 
 function irreducibles(
-    ρ::GroupRepresentation{A, T}
-) where {A<:AbstractGroupAction{Lie}, T<:SymmetricPowers}
-    V = space(ρ)
-    ws = weight_structure(action(ρ), base_space(V))
-    irreds = IrreducibleRepresentation{A}[]
-    for p in powers(V)
-        sym_ws = sym(ws, p)
-        Xs = positive_root_elements(algebra(action(ρ)))
-        hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), sym_ws)
-        append!(irreds, [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors])
-    end
-    return irreds
-end
-
-# function irreducibles(
-#     ρ::GroupRepresentation{A, T}
-# ) where {A<:AbstractGroupAction{Lie}, T<:SymmetricPower}
-#     V = space(ρ)
-#     ws = weight_structure(action(ρ), base_space(V))
-#     sym_ws = sym(ws, power(V))
-#     Xs = positive_root_elements(algebra(action(ρ)))
-#     hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), sym_ws)
-#     return [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors]
-# end
-
-function irreducibles(
     ρ::GroupRepresentation{A, S}
 ) where {A<:AbstractGroupAction{Lie}, S<:VectorSpace{<:Variable}}
     ws = weight_structure(action(ρ), space(ρ))
@@ -86,6 +60,7 @@ function irreducibles(
     ρ::GroupRepresentation{A, S}
 ) where {T, F, A<:AbstractGroupAction{Lie}, S<:SymmetricPower{T, F, <:HighestWeightModule}}
     V = space(ρ)
+    power(V) == 1 && return [IrreducibleRepresentation(action(ρ), base_space(V))]
     ws = weight_structure(base_space(V))
     sym_ws = sym(ws, power(V))
     Xs = positive_root_elements(algebra(action(ρ)))
@@ -120,7 +95,10 @@ function irreducibles(
     V = space(ρ)
     if nfactors(V) == 2
         ws₁, ws₂ = weight_structure(factor(V, 1)), weight_structure(factor(V, 2)) # TODO: save once computed
+        println("nweights 1: ", nweights(ws₁))
+        println("nweights 2: ", nweights(ws₂))
         tensor_ws = tensor(ws₁, ws₂)
+        println("nweights 1 ⊗ 2: ", nweights(tensor_ws))
         Xs = positive_root_elements(algebra(action(ρ)))
         hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), tensor_ws)
         return [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors]
@@ -136,19 +114,6 @@ function irreducibles(
     end
     return irreds
 end
-
-# function irreducibles(
-#     ρ::GroupRepresentation{A, S}
-# ) where {A<:AbstractGroupAction{Lie}, S<:TensorProduct}
-#     irreds_fs = [irreducibles(GroupRepresentation(action(ρ), V)) for V in factors(space(ρ))]
-#     irreds = IrreducibleRepresentation{A}[]
-#     for irrs in Iterators.product(irreds_fs...)
-#         V = TensorProduct([space(ρᵢ) for ρᵢ in irrs])
-#         ρᵢ = GroupRepresentation(action(ρ), V)
-#         append!(irreds, irreducibles(ρᵢ))
-#     end
-#     return irreds
-# end
 
 function irreducibles(
     ρ::GroupRepresentation{A, S}

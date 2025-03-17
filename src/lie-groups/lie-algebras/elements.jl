@@ -49,9 +49,9 @@ function as_matrix(elem::LieAlgebraElem)
 end
 
 
-struct SumLieAlgebraElem{F} <: AbstractLieAlgebraElem
+struct SumLieAlgebraElem{F, T<:LieAlgebraElem{F}} <: AbstractLieAlgebraElem
     alg::SumLieAlgebra{F}
-    elems::Vector{LieAlgebraElem{F}}
+    elems::Vector{T}
 end
 
 algebra(elem::SumLieAlgebraElem) = elem.alg

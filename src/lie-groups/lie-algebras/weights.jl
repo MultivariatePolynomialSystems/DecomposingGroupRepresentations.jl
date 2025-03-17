@@ -18,11 +18,16 @@ Base.show(io::IO, w::Weight) = print(io, w.weight)
 Base.zero(::Type{Weight{T}}, n) where T = Weight(zeros(T, n))
 Base.zero(w::Weight) = Weight(zero(w.weight))
 Base.vcat(w₁::Weight{T}, w₂::Weight{T}) where T = Weight(vcat(w₁.weight, w₂.weight))
+Base.vcat(ws::Weight{T}...) where T = Weight(vcat([w.weight for w in ws]...))
 Base.hash(w::Weight, h::UInt) = hash(w.weight, h)
 Base.:(==)(w₁::Weight, w₂::Weight) = w₁.weight == w₂.weight
 Base.:*(n::Number, w::Weight) = Weight(n*w.weight)
 Base.:+(w₁::Weight{T}, w₂::Weight{T}) where {T} = Weight{T}(w₁.weight + w₂.weight)
 Base.promote_rule(::Type{Weight{T}}, ::Type{Weight{S}}) where {T,S} = Weight{promote_type(T, S)}
+Base.getindex(w::Weight, i::Integer) = w.weight[i]
+Base.getindex(w::Weight, inds...) = getindex(w.weight, inds...)
+Base.length(w::Weight) = length(w.weight)
+Base.eachindex(w::Weight) = eachindex(w.weight)
 
 struct WeightVector{T, W<:Weight}
     weight::W
@@ -189,9 +194,9 @@ function sym(ws::WeightStructure{T,W}, d::Int) where {T, W}
         end
     end
     new_ws = WeightStructure{T,W}()
-    for (weight, combs) in new_weights_dict
+    for (w, combs) in new_weights_dict
         w_sps = [*(weight_spaces(ws, comb.nzind; as_spaces=true), comb.nzval) for comb in combs]
-        push!(new_ws, WeightSpace(weight, +(w_sps...)))
+        push!(new_ws, WeightSpace(w, +(w_sps...)))
     end
     return new_ws
 end
