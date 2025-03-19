@@ -1,3 +1,5 @@
+export isotypic_dict
+
 function isotypic_components(
     irreds::Vector{T}
 ) where {T<:IrreducibleRepresentation}
@@ -20,3 +22,7 @@ function isotypic_components(
     irreds = irreducibles(ρ)
     return isotypic_components(irreds)
 end
+
+isotypic_dict(
+    iso::Vector{T}
+) where T<:IsotypicComponent = Dict{Weight, T}(zip([highest_weight(ic) for ic in iso], iso))

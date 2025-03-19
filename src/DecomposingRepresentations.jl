@@ -10,7 +10,7 @@ export @polyvar, Variable, Monomial, Polynomial, Commutative, CreationOrder, Gra
 
 using Combinatorics: partitions, multiset_permutations, combinations, with_replacement_combinations
 
-using Base.Iterators: product
+using Base.Iterators: product, flatten
 
 include("utils/basic.jl")
 include("utils/Gauss-Jordan.jl")
@@ -19,9 +19,13 @@ include("types.jl")
 include("vector-spaces/basic.jl")
 include("vector-spaces/composite.jl")
 
-include("lie-groups/lie-algebras/weights.jl")
+include("lie-groups/lie-algebras/weights/weight.jl")
+include("lie-groups/lie-algebras/weights/weight-vector.jl")
+include("lie-groups/lie-algebras/weights/weight-space.jl")
+include("lie-groups/lie-algebras/weights/weight-struct.jl")
 include("lie-groups/lie-algebras/algebras.jl")
 include("lie-groups/lie-algebras/elements.jl")
+include("lie-groups/lie-algebras/weights/decompose-weights.jl")
 
 include("lie-groups/lie-groups/groups.jl")
 include("lie-groups/lie-groups/elements.jl")

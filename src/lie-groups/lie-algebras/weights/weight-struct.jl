@@ -1,85 +1,6 @@
-export Weight,
-    WeightVector,
-    weight,
-    vector,
-    WeightSpace,
-    space,
-    WeightStructure,
+export WeightStructure,
     weight_space,
     sym
-
-
-struct Weight{T}
-    weight::Vector{T}
-end
-
-Base.show(io::IO, ::MIME"text/plain", w::Weight) = print(io, "Weight: ", w.weight)
-Base.show(io::IO, w::Weight) = print(io, w.weight)
-Base.zero(::Type{Weight{T}}, n) where T = Weight(zeros(T, n))
-Base.zero(w::Weight) = Weight(zero(w.weight))
-Base.vcat(w₁::Weight{T}, w₂::Weight{T}) where T = Weight(vcat(w₁.weight, w₂.weight))
-Base.vcat(ws::Weight{T}...) where T = Weight(vcat([w.weight for w in ws]...))
-Base.hash(w::Weight, h::UInt) = hash(w.weight, h)
-Base.:(==)(w₁::Weight, w₂::Weight) = w₁.weight == w₂.weight
-Base.:*(n::Number, w::Weight) = Weight(n*w.weight)
-Base.:+(w₁::Weight{T}, w₂::Weight{T}) where {T} = Weight{T}(w₁.weight + w₂.weight)
-Base.promote_rule(::Type{Weight{T}}, ::Type{Weight{S}}) where {T,S} = Weight{promote_type(T, S)}
-Base.getindex(w::Weight, i::Integer) = w.weight[i]
-Base.getindex(w::Weight, inds...) = getindex(w.weight, inds...)
-Base.length(w::Weight) = length(w.weight)
-Base.eachindex(w::Weight) = eachindex(w.weight)
-
-struct WeightVector{T, W<:Weight}
-    weight::W
-    vector::T
-end
-
-weight(wv::WeightVector) = wv.weight
-vector(wv::WeightVector) = wv.vector
-
-function Base.show(io::IO, ::MIME"text/plain", wv::WeightVector)
-    println(io, "WeightVector with weight $(weight(wv))")
-    print(io, " vector: $(repr(vector(wv)))")
-end
-
-function Base.show(io::IO, wv::WeightVector)
-    print(io, "WeightVector with weight $(weight(wv))")
-end
-
-struct WeightSpace{T <: AbstractVectorSpace, W<:Weight}
-    weight::W
-    space::T
-end
-
-WeightSpace(weight::Vector, space::Vector) = WeightSpace(Weight(weight), MatrixVectorSpace(space))
-WeightSpace{T,W}(wv::WeightVector) where {T,W} = WeightSpace{T,W}(weight(wv), T(vector(wv)))
-
-Base.convert(
-    ::Type{WeightSpace{T, W}},
-    ws::WeightSpace
-) where {T<:AbstractVectorSpace, W<:Weight} = WeightSpace(
-    convert(W, weight(ws)),
-    convert(T, space(ws))
-)
-
-weight(ws::WeightSpace) = ws.weight
-space(ws::WeightSpace) = ws.space
-dim(ws::WeightSpace) = dim(space(ws))
-field_type(::WeightSpace{T}) where {T} = field_type(T)
-
-function Base.show(io::IO, ::MIME"text/plain", ws::WeightSpace)
-    println(io, "WeightSpace of dimension $(dim(ws))")
-    print(io, " weight: $(weight(ws))")
-end
-
-function Base.show(io::IO, ws::WeightSpace)
-    print(io, "WeightSpace of dimension $(dim(ws))")
-end
-
-function Base.iterate(ws::WeightSpace, state=1)
-    state > dim(ws) && return nothing
-    return (WeightVector(weight(ws), basis(space(ws), state)), state+1)
-end
 
 struct WeightStructure{T<:AbstractVectorSpace, W<:Weight}
     weights::Vector{W} # Ordering needed for sym_weight_structure
@@ -179,6 +100,32 @@ function Base.push!(ws::WeightStructure, w_space::WeightSpace)
 end
 
 Base.push!(ws::WeightStructure{T,W}, wv::WeightVector) where {T,W} = push!(ws, WeightSpace{T,W}(wv))
+
+function sym_weights_dict(ws::Vector{W}, p::Int) where W<:Weight
+    combs = multiexponents(; degree=p, nvars=length(ws))
+    ws_dict = Dict{W, Vector{typeof(first(combs))}}()
+    for comb in combs
+        w = sum([val*ws[ind] for (val, ind) in zip(comb.nzval, comb.nzind)])
+        if haskey(ws_dict, w)
+            push!(ws_dict[w], comb)
+        else
+            ws_dict[w] = [comb]
+        end
+    end
+    return ws_dict
+end
+
+function sym_weight_struct(hw::W, A::AbstractLieAlgebra, p::Int, ws::WeightStructure{T,W}) where {T, W<:Weight}
+    dir_sum_hws = sym(hw, A, p)
+    ws_dict = sym_weights_dict(weights(ws), p)
+    new_ws = WeightStructure{T,W}()
+    for hw in dir_sum_hws
+        combs = ws_dict[hw]
+        w_sps = [*(weight_spaces(ws, comb.nzind; as_spaces=true), comb.nzval; in_rref=false) for comb in combs]
+        push!(new_ws, WeightSpace(hw, +(w_sps...; in_rref=false)))
+    end
+    return new_ws
+end
 
 function sym(ws::WeightStructure{T,W}, d::Int) where {T, W}
     d == 0 && return WeightStructure([WeightSpace(zero_weight(ws), field_space(ws))])

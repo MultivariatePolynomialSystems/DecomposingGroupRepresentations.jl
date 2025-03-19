@@ -170,7 +170,10 @@ end
 function zero_combinations(F::Vector{<:AbstractPolynomial}; tol::Real=1e-5)
     mons = monomials(F; as_monvec=false)
     M = coeffs_matrix(F, mons)
-    return eachcol(nullspace(M; atol=tol))
+    N = Matrix(transpose(nullspace(M; atol=tol)))
+    rref!(N)
+    sparsify!(N, tol)
+    return eachrow(N)
 end
 
 # Generates a list of multiexponents of degree @degree in @nvars variables

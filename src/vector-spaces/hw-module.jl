@@ -1,4 +1,5 @@
-export HighestWeightModule
+export HighestWeightModule,
+    weyl_dim
 
 
 struct HighestWeightModule{T, F, A<:AbstractGroupAction{Lie, F}, Wv<:WeightVector{T}} <: AbstractVectorSpace{T, F}
@@ -8,6 +9,7 @@ end
 
 action(V::HighestWeightModule) = V.action
 group(V::HighestWeightModule) = group(action(V))
+algebra(V::HighestWeightModule) = algebra(action(V))
 hw_vector(V::HighestWeightModule) = V.hw_vector
 highest_weight(V::HighestWeightModule) = weight(hw_vector(V))
 weight_type(V::HighestWeightModule) = typeof(highest_weight(V))
@@ -16,13 +18,13 @@ DynamicPolynomials.variables(V::HighestWeightModule) = variables(vector(hw_vecto
 DynamicPolynomials.nvariables(V::HighestWeightModule) = nvariables(vector(hw_vector(V)))
 
 # Weyl dimension formula
-function weyl_dim(λ::Weight, G::AbstractGroup{Lie})
-    Δ⁺ = to_vector.(positive_roots(algebra(G)))
+function weyl_dim(λ::Weight, A::AbstractLieAlgebra)
+    Δ⁺ = to_vector.(positive_roots(A))
     ρ = sum(Δ⁺) / 2
     return Int(prod([dot(λ.weight + ρ, α) / dot(ρ, α) for α in Δ⁺]))
 end
 
-dim(V::HighestWeightModule) = weyl_dim(highest_weight(V), group(V))
+dim(V::HighestWeightModule) = weyl_dim(highest_weight(V), algebra(V))
 
 function Base.show(io::IO, ::MIME"text/plain", V::HighestWeightModule)
     println(io, "HighestWeightModule of dimension ", dim(V))

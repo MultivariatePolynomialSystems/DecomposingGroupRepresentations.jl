@@ -34,7 +34,7 @@ DynamicPolynomials.variables(V::SymmetricPower) = variables(base_space(V))
 DynamicPolynomials.nvariables(V::SymmetricPower) = nvariables(base_space(V))
 
 function Base.show(io::IO, V::SymmetricPower; indent::Int=0)
-    println(io, " "^indent, "SymmetricPowerSpace")
+    println(io, " "^indent, "SymmetricPower of dimension $(dim(V))")
     println(io, " "^indent, " base space:")
     show(io, base_space(V); indent=indent+2)
     println(io)

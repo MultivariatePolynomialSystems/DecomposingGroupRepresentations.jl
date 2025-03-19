@@ -86,8 +86,9 @@ end
 
 Base.:*(
     Vs::Vector{VectorSpace{T, F}},
-    muls::Vector{Int}
-) where {T<:Polynomial, F} = *(vcat([fill(V, mul) for (V, mul) in zip(Vs, muls)]...))
+    muls::Vector{Int};
+    in_rref::Bool=true
+) where {T<:Polynomial, F} = *(vcat([fill(V, mul) for (V, mul) in zip(Vs, muls)]...); in_rref=in_rref)
 
 function Base.:∩(
     V₁::VectorSpace{<:AbstractPolynomialLike, F},
