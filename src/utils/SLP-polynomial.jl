@@ -12,6 +12,7 @@ struct Poly{V,M,T} <: AbstractSLP{V,M,T}
 end
 
 Poly(var::Variable) = Poly(polynomial(var))
+Poly(mon::Monomial{V,M}) where {V,M} = Poly{V,M,ComplexF64}(polynomial(mon))
 Base.show(io::IO, p::Poly) = print(io, repr(p.poly))
 Base.iszero(p::Poly) = iszero(p.poly)
 DynamicPolynomials.isconstant(p::Poly) = isconstant(p.poly)

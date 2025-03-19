@@ -2,6 +2,7 @@ export rand_rotation, sparsify!
 export rref, monomials, coeffs_matrix, polynomials
 export num_mons
 export superscript, subscript
+export multiexponents
 
 a2p(M::AbstractMatrix{<:Number}) = [M; ones(eltype(M), 1, size(M, 2))]
 p2a(M::AbstractMatrix{<:Number}) = (M./M[end:end,:])[1:end-1,:]

@@ -6,7 +6,7 @@ function ws_nullspace(
 )
     B = basis(space(ws))
     Bₐ = [act(X, a, f) for f in B]
-    println([depth(f) for f in Bₐ])
+    # println([depth(f) for f in Bₐ])
     # println(Bₐ[1])
     if all(f -> isapprox(f, zero(f); atol=tol), Bₐ)
         return ws
