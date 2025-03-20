@@ -1,6 +1,7 @@
 export AbstractSLP, Poly, SumPoly, ProdPoly
 export zero_combinations, evaluate, evaluation_matrix
 export differentiate
+export depth
 
 abstract type AbstractSLP{V,M,T} end
 
@@ -11,6 +12,7 @@ struct Poly{V,M,T} <: AbstractSLP{V,M,T}
     poly::Polynomial{V,M,T}
 end
 
+Poly{T}(p::Polynomial{V,M}) where {V,M,T} = Poly{V,M,T}(p)
 Poly(var::Variable) = Poly(polynomial(var))
 Poly(mon::Monomial{V,M}) where {V,M} = Poly{V,M,ComplexF64}(polynomial(mon))
 Base.show(io::IO, p::Poly) = print(io, repr(p.poly))
@@ -18,7 +20,7 @@ Base.iszero(p::Poly) = iszero(p.poly)
 DynamicPolynomials.isconstant(p::Poly) = isconstant(p.poly)
 DynamicPolynomials.variables(p::Poly) = variables(p.poly)
 DynamicPolynomials.nvariables(p::Poly) = nvariables(p.poly)
-depth(p::Poly) = 1
+depth(p::Poly) = 0
 
 struct SumPoly{V,M,T} <: AbstractSLP{V,M,T}
     polys::Vector{AbstractSLP{V,M,T}}
