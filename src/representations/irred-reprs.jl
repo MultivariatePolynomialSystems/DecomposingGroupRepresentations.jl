@@ -1,5 +1,6 @@
 export IrreducibleRepresentation,
-    highest_weight
+    highest_weight,
+    hw_vector
 
 
 struct IrreducibleRepresentation{

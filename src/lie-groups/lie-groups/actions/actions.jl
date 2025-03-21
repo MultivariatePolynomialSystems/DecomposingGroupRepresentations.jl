@@ -19,12 +19,13 @@ MatrixGroupAction(
 
 group(a::MatrixGroupAction) = a.group
 action_vectors(a::MatrixGroupAction) = a.vars
+naction_vectors(a::MatrixGroupAction) = length(action_vectors(a))
 DynamicPolynomials.variables(a::MatrixGroupAction) = vcat(action_vectors(a)...)
 space(a::MatrixGroupAction{T, F}) where {T,F} = VectorSpace(F, variables(a))
 
 function Base.show(io::IO, a::MatrixGroupAction)
     println(io, "MatrixGroupAction of $(name(group(a)))")
-    print(io, " vectors under action: ")
+    print(io, " $(naction_vectors(a)) vectors under action: ")
     print(io, "[", join([join(map(repr, v), ", ") for v in action_vectors(a)], "], ["), "]")
 end
 

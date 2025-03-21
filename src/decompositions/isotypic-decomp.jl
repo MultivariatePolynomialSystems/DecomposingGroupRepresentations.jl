@@ -41,8 +41,8 @@ Base.getindex(ID::IsotypicDecomposition, w::Weight) = ID.iso_dict[w]
 function Base.show(io::IO, iso::IsotypicDecomposition)
     println(io, "IsotypicDecomposition of $(name(group(iso)))-action on $(dim(iso))-dimensional vector space")
     println(io, " number of isotypic components: ", nisotypic(iso))
-    println(io, " multiplicities: ", [mul(ic) for ic in isotypic_components(iso)])
-    print(io, " dimensions: ", [dim(ic) for ic in isotypic_components(iso)])
+    println(io, " multiplicities of irreducibles: ", join([mul(ic) for ic in isotypic_components(iso)], ", "))
+    print(io, " dimensions of isotypic components: ", join([dim(ic) for ic in isotypic_components(iso)], ", "))
 end
 
 invariant_component(

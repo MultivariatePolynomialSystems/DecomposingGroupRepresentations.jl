@@ -221,5 +221,5 @@ Base.getindex(ID::IrreducibleDecomposition, i::Int) = ID.irreds[i]
 function Base.show(io::IO, ID::IrreducibleDecomposition)
     println(io, "IrreducibleDecomposition of $(name(group(ID)))-action on $(dim(ID))-dimensional vector space")
     println(io, " number of irreducibles: ", nirreducibles(ID))
-    print(io, " dimensions of irreducibles: ", [dim(irr) for irr in irreducibles(ID)])
+    print(io, " dimensions of irreducibles: ", join([dim(irr) for irr in irreducibles(ID)], ", "))
 end

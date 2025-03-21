@@ -17,8 +17,11 @@ makedocs(;
     pages=[
         "Introduction" => "index.md",
         "Reductive groups" => [
-            "Groups" => "groups/groups.md",
-            "Group elements" => "groups/elements.md",
+            "Group types" => "groups/types.md",
+            "Finite groups" => "groups/finite.md",
+            "Lie groups" => "groups/lie.md",
+            "Direct products" => "groups/products.md",
+            "Group Elements" => "groups/elements.md",
         ],
         "Representations of reductive groups" => [
             "Vector spaces" => "representations/spaces.md",

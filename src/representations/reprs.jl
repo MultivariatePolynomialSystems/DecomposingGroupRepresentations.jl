@@ -17,7 +17,7 @@ function Base.show(io::IO, ::MIME"text/plain", ρ::GroupRepresentation)
     println(
         io,
         "GroupRepresentation of $(name(group(ρ))) ",
-        "on the $(dim(ρ))-dimensional vector space"
+        "on $(dim(ρ))-dimensional vector space"
     )
     print(io, " Lie group: ", name(group(ρ)))
 end
@@ -27,7 +27,7 @@ function Base.show(io::IO, ρ::GroupRepresentation)
     print(
         io,
         "GroupRepresentation of $(name(group(ρ))) ",
-        "on the $(dim(ρ))-dimensional vector space"
+        "on $(dim(ρ))-dimensional vector space"
     )
 end
 

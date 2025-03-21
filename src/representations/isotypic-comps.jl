@@ -16,6 +16,7 @@ highest_weight(ρ::IsotypicComponent) = ρ.highest_weight
 irreducibles(ρ::IsotypicComponent) = ρ.irreds
 mul(ρ::IsotypicComponent) = length(ρ.irreds)
 space(ρ::IsotypicComponent) = DirectSum([space(ρᵢ) for ρᵢ in irreducibles(ρ)])
+basis(ρ::IsotypicComponent) = basis(space(ρ))
 dim(ρ::IsotypicComponent) = sum([dim(ρᵢ) for ρᵢ in irreducibles(ρ)])
 hw_vectors(ρ::IsotypicComponent) = [hw_vector(ρᵢ) for ρᵢ in irreducibles(ρ)]
 isotypic_components(ρ::IsotypicComponent) = [ρ]
