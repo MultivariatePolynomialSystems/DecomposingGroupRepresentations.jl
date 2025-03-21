@@ -2,7 +2,7 @@ export rand_rotation, sparsify!
 export rref, monomials, coeffs_matrix, polynomials
 export num_mons
 export superscript, subscript
-export multiexponents
+export multiexponents, div_by_smallest_coeff
 
 a2p(M::AbstractMatrix{<:Number}) = [M; ones(eltype(M), 1, size(M, 2))]
 p2a(M::AbstractMatrix{<:Number}) = (M./M[end:end,:])[1:end-1,:]
@@ -201,4 +201,12 @@ function multiexponents(; degree::Tv, nvars::Ti, upto::Bool=false) where {Tv<:In
         append!(mexps, multiexponents(d, nvars))
     end
     return mexps
+end
+
+function div_by_smallest_coeff(f::Polynomial; tol::Real=1e-5)
+    c = minimum(abs, coefficients(f))
+    c ≈ 0 && return f
+    cs = coefficients(f)/c
+    sparsify!(cs, tol)
+    return Polynomial(cs, monomials(f))
 end

@@ -1,4 +1,4 @@
-export irreducibles, irreducibles_old
+export irreducibles, irreducibles_old, IrreducibleDecomposition
 
 function ws_nullspace(
     X::AbstractLieAlgebraElem,
@@ -16,7 +16,7 @@ function ws_nullspace(
     isempty(Cs) && return nothing
     return WeightSpace(
         weight(ws),
-        VectorSpace(field_type(ws), [sum(c .* B) for c in Cs]; in_rref=false)
+        PolySpace{field_type(ws)}([sum(c .* B) for c in Cs])
         )
 end
 
@@ -30,7 +30,7 @@ function common_nullspace_as_weight_vectors(
         wsₙ = ws_nullspace(X, a, wsₙ)
         isnothing(wsₙ) && return WeightVector[]
     end
-    return [WeightVector(weight(wsₙ), v) for v in basis(space(wsₙ))]
+    return [WeightVector(weight(wsₙ), div_by_smallest_coeff(v)) for v in basis(space(wsₙ))]
 end
 
 common_nullspace_as_weight_vectors(
@@ -51,7 +51,7 @@ end
 
 function irreducibles(
     ρ::GroupRepresentation{A, S}
-) where {A<:AbstractGroupAction{Lie}, S<:VectorSpace{<:Variable}}
+) where {A<:AbstractGroupAction{Lie}, S<:VariableSpace}
     ws = weight_structure(action(ρ), space(ρ))
     Xs = positive_root_elements(algebra(action(ρ)))
     hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), ws)
@@ -66,8 +66,6 @@ function irreducibles(
     power(V) == 1 && return [IrreducibleRepresentation(action(ρ), Vb)]
     ws = weight_structure(Vb)
     sym_ws = sym_weight_struct(highest_weight(Vb), algebra(action(ρ)), power(V), ws)
-    println("new nweights: ", nweights(sym_ws))
-    println("new sum of dims: ", sum([dim(space(sym_ws[w])) for w in weights(sym_ws)]))
     Xs = positive_root_elements(algebra(action(ρ)))
     hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), sym_ws)
     return [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors]
@@ -135,10 +133,10 @@ function irreducibles(
     V = space(ρ)
     if nfactors(V) == 2
         ws₁, ws₂ = weight_structure(factor(V, 1)), weight_structure(factor(V, 2)) # TODO: save once computed
-        println("nweights 1: ", nweights(ws₁))
-        println("nweights 2: ", nweights(ws₂))
+        # println("nweights 1: ", nweights(ws₁))
+        # println("nweights 2: ", nweights(ws₂))
         tensor_ws = tensor(ws₁, ws₂)
-        println("nweights 1 ⊗ 2: ", nweights(tensor_ws))
+        # println("nweights 1 ⊗ 2: ", nweights(tensor_ws))
         Xs = positive_root_elements(algebra(action(ρ)))
         hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), tensor_ws)
         return [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors]
@@ -183,4 +181,45 @@ function irreducibles(
         end
     end
     return irreds
+end
+
+function irreducibles(
+    ρ::GroupRepresentation{A, S}
+) where {A<:AbstractGroupAction{Lie}, S<:FixedDegreePolynomials}
+    V = space(ρ)
+    return irreducibles(GroupRepresentation(action(ρ), SymmetricPower(var_space(V), degree(V))))
+end
+
+function irreducibles(
+    ρ::GroupRepresentation{A, S}
+) where {A<:AbstractGroupAction{Lie}, S<:FixedMultidegreePolynomials}
+    V = space(ρ)
+    return irreducibles(GroupRepresentation(action(ρ), TensorProduct([SymmetricPower(Vᵢ, dᵢ) for (Vᵢ, dᵢ) in zip(var_spaces(V), degrees(V))])))
+end
+
+
+struct IrreducibleDecomposition{A<:AbstractGroupAction{Lie}, T<:GroupRepresentation{A}, Ir<:IrreducibleRepresentation{A}}
+    ρ::T
+    irreds::Vector{Ir}
+end
+
+function IrreducibleDecomposition(
+    ρ::GroupRepresentation
+)
+    irreds = irreducibles(ρ)
+    return IrreducibleDecomposition(ρ, irreds)
+end
+
+representation(ID::IrreducibleDecomposition) = ID.ρ
+action(ID::IrreducibleDecomposition) = action(ID.ρ)
+group(ID::IrreducibleDecomposition) = group(ID.ρ)
+irreducibles(ID::IrreducibleDecomposition) = ID.irreds
+nirreducibles(ID::IrreducibleDecomposition) = length(irreducibles(ID))
+dim(ID::IrreducibleDecomposition) = dim(ID.ρ)
+Base.getindex(ID::IrreducibleDecomposition, i::Int) = ID.irreds[i]
+
+function Base.show(io::IO, ID::IrreducibleDecomposition)
+    println(io, "IrreducibleDecomposition of $(name(group(ID)))-action on $(dim(ID))-dimensional vector space")
+    println(io, " number of irreducibles: ", nirreducibles(ID))
+    print(io, " dimensions of irreducibles: ", [dim(irr) for irr in irreducibles(ID)])
 end

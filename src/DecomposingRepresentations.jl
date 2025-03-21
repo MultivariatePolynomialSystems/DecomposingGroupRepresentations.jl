@@ -18,6 +18,7 @@ include("types.jl")
 
 include("vector-spaces/basic.jl")
 include("vector-spaces/composite.jl")
+include("vector-spaces/polynomials.jl")
 
 include("lie-groups/lie-algebras/weights/weight.jl")
 include("lie-groups/lie-algebras/weights/weight-vector.jl")

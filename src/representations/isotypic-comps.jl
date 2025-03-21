@@ -31,3 +31,8 @@ end
 function Base.show(io::IO, ρ::IsotypicComponent)
     print(io, "IsotypicComponent with (dim, mul) = ($(dim(ρ)), $(mul(ρ)))")
 end
+
+function Base.push!(ρ::IsotypicComponent, ρᵢ::IrreducibleRepresentation)
+    @assert highest_weight(ρ) == highest_weight(ρᵢ) # && action(ρ) == action(ρᵢ) FIXME
+    return push!(ρ.irreds, ρᵢ)
+end
