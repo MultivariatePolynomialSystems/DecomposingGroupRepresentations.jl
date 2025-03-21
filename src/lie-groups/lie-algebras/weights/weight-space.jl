@@ -1,7 +1,7 @@
 export WeightSpace,
     space
 
-struct WeightSpace{T <: AbstractVectorSpace, W<:Weight}
+struct WeightSpace{T<:AbstractVectorSpace, W<:Weight}
     weight::W
     space::T
 end

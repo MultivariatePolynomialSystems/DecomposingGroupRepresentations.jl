@@ -26,14 +26,14 @@ end
 
 dim(V::HighestWeightModule) = weyl_dim(highest_weight(V), algebra(V))
 
-function Base.show(io::IO, ::MIME"text/plain", V::HighestWeightModule)
-    println(io, "HighestWeightModule of dimension ", dim(V))
-    println(io, " Lie group: ", name(group(V)))
-    print(io, " highest weight: ", highest_weight(V))
+function Base.show(io::IO, ::MIME"text/plain", V::HighestWeightModule; indent::Int=0)
+    println(io, " "^indent, "HighestWeightModule of dimension ", dim(V))
+    println(io, " "^indent, " Lie group: ", name(group(V)))
+    print(io, " "^indent, " highest weight: ", highest_weight(V))
 end
 
-function Base.show(io::IO, V::HighestWeightModule)
-    println(io, "HighestWeightModule of dimension ", dim(V))
+function Base.show(io::IO, V::HighestWeightModule; indent::Int=0)
+    print(io, " "^indent, "HighestWeightModule of dimension ", dim(V))
 end
 
 function orbit(
@@ -43,6 +43,7 @@ function orbit(
     tol::Real=1e-5
 ) where T<:WeightVector
     isapprox(vector(wv), zero(vector(wv)); atol=tol) && return T[]
+    wv = WeightVector(weight(wv), div_by_smallest_coeff(vector(wv)))
     push!(processed_weights, weight(wv))
     orbit_vectors = [wv]
     for nre in negative_root_elements(algebra(action))
@@ -64,8 +65,8 @@ end
 
 function weight_structure(
     V::HighestWeightModule{T, F}
-) where {T, F}
-    ws = WeightStructure{VectorSpace{T,F}, weight_type(V)}()
+) where {T<:Polynomial, F}
+    ws = WeightStructure{PolySpace{F, T}, weight_type(V)}()
     for wv in basis(V; as_weight_vectors=true)
         push!(ws, wv)
     end

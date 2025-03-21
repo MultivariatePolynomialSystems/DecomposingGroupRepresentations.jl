@@ -121,8 +121,8 @@ function sym_weight_struct(hw::W, A::AbstractLieAlgebra, p::Int, ws::WeightStruc
     new_ws = WeightStructure{T,W}()
     for hw in dir_sum_hws
         combs = ws_dict[hw]
-        w_sps = [*(weight_spaces(ws, comb.nzind; as_spaces=true), comb.nzval; in_rref=false) for comb in combs]
-        push!(new_ws, WeightSpace(hw, +(w_sps...; in_rref=false)))
+        w_sps = [*(weight_spaces(ws, comb.nzind; as_spaces=true), comb.nzval) for comb in combs]
+        push!(new_ws, WeightSpace(hw, +(w_sps...)))
     end
     return new_ws
 end
@@ -162,8 +162,8 @@ function tensor(ws₁::WeightStructure{T,W}, ws₂::WeightStructure{T,W}) where 
     end
     new_ws = WeightStructure{T,W}()
     for (weight, combs) in new_weights_dict
-        w_sps = [*([weight_space(ws₁, comb[1]; as_space=true), weight_space(ws₂, comb[2]; as_space=true)]; in_rref=false) for comb in combs]
-        total_ws = +(w_sps...; in_rref=false)
+        w_sps = [*([weight_space(ws₁, comb[1]; as_space=true), weight_space(ws₂, comb[2]; as_space=true)]) for comb in combs]
+        total_ws = +(w_sps...)
         push!(new_ws, WeightSpace(weight, total_ws))
     end
     return new_ws

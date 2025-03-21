@@ -2,7 +2,6 @@ export DirectSum,
     SymmetricPower,
     base_space,
     power,
-    SymmetricPowers,
     TensorProduct,
     factors
 
@@ -42,36 +41,6 @@ function Base.show(io::IO, V::SymmetricPower; indent::Int=0)
 end
 
 
-struct SymmetricPowers{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractDirectSum{T, F}
-    space::S
-    powers::Vector{Int}
-end
-
-SymmetricPowers(
-    V::AbstractVectorSpace{F},
-    powers::AbstractVector{<:Integer}
-) where F = SymmetricPowers{F, typeof(V)}(V, collect(powers))
-
-SymmetricPowers(
-    vars::Vector{V},
-    powers::AbstractVector{<:Integer}
-) where {V<:Variable} = SymmetricPowers(VectorSpace{V, ComplexF64}(vars), powers)
-
-base_space(V::SymmetricPowers) = V.space
-powers(V::SymmetricPowers) = V.powers
-dim(V::SymmetricPowers) = sum([num_mons(dim(base_space(V)), p) for p in powers(V)])
-summands(V::SymmetricPowers) = [SymmetricPower(base_space(V), p) for p in powers(V)]
-nsummands(V::SymmetricPowers) = length(powers(V))
-
-function Base.show(io::IO, V::SymmetricPowers; indent::Int=0)
-    println(io, " "^indent, "SymmetricPowersSpace (direct sum of $(nsummands(V)) symmetric powers)")
-    println(io, " "^indent, " base space:")
-    show(io, base_space(V); indent=2)
-    println(io)
-    print(io, " "^indent, " powers: ", join(powers(V), ", "))
-end
-
-
 struct TensorProduct{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractTensorProduct{T, F}
     factors::Vector{S}
 
@@ -85,7 +54,9 @@ struct TensorProduct{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractTensorProduc
     end
 end
 
-TensorProduct(factors::Vector{S}) where {T, F, S<:AbstractVectorSpace{T, F}} = TensorProduct{T, F, S}(factors)
+TensorProduct(
+    factors::Vector{S}
+) where {T, F, S<:AbstractVectorSpace{T, F}} = length(factors) == 1 ? factors[1] : TensorProduct{T, F, S}(factors)
 
 TensorProduct(
     V::AbstractVectorSpace{T, F},
