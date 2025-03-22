@@ -25,7 +25,7 @@ SO3 = LieGroup("SO", 3)
 a = MatrixGroupAction(SO3, [vars])
 V = FixedDegreePolynomials(vars, 2)
 ρ = GroupRepresentation(a, V)
-irrs = IrreducibleDecomposition(ρ)
+irrs = irreducibles(ρ)
 ```
 ```
 IrreducibleDecomposition of SO(3)-action on 6-dimensional vector space
