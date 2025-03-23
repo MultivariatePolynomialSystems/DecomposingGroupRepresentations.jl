@@ -14,6 +14,7 @@ struct ScalingLieAlgebra{F} <: AbstractLieAlgebra{F}
 end
 
 ScalingLieAlgebra{F}(size::Int) where F = ScalingLieAlgebra{F}("ℂ", sparse(ones(Int, 1, size)))
+ScalingLieAlgebra{F}(exps::Matrix{Int}) where F = ScalingLieAlgebra{F}("ℂ$(superscript(size(exps, 1)))", sparse(exps))
 
 name(alg::ScalingLieAlgebra) = alg.name
 dim(alg::ScalingLieAlgebra) = size(alg.exps, 1)
@@ -129,6 +130,7 @@ dim(alg::LieAlgebra) = length(alg.basis.std_basis)
 rank(alg::LieAlgebra) = length(alg.basis.cartan)
 Base.size(alg::LieAlgebra) = size(alg.basis.std_basis[1], 1)
 weight_type(::LieAlgebra{F, W}) where {F, W} = W
+weight_inner_type(::LieAlgebra{F, Weight{W}}) where {F, W} = W
 
 function Base.show(io::IO, alg::LieAlgebra{F, Weight{W}}; offset::Int=0) where {F, W}
     println(io, " "^offset, "LieAlgebra $(name(alg))")

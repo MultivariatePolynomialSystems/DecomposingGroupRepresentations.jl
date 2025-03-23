@@ -11,16 +11,15 @@ export action, space, irreducibles, isotypic_components
 
 
 """
-    GroupType
+    abstract type GroupType end
 
-Abstract type representing a group type in the context of decomposing representations.
-This serves as a base type for all specific group types that will be defined.
+Abstract type representing a group type in the context of decomposing representations. The concrete types are [`Finite`](@ref), [`Lie`](@ref) and [`Mixed`](@ref).
 """
 abstract type GroupType end
 
 
 """
-    Lie <: GroupType
+    struct Lie <: GroupType end
 
 Represents a Lie group type.
 """
@@ -28,7 +27,7 @@ struct Lie <: GroupType end
 
 
 """
-    Finite <: GroupType
+    struct Finite <: GroupType end
 
 Represents a finite group type. This type is used to categorize groups that have a finite number of elements.
 """
@@ -36,7 +35,7 @@ struct Finite <: GroupType end
 
 
 """
-    Mixed <: GroupType
+    struct Mixed <: GroupType end
 
 Represents a mixed group type. This type is used in direct products of finite groups with Lie groups.
 """
@@ -45,14 +44,26 @@ struct Mixed <: GroupType end
 """
     AbstractGroup{T<:GroupType, F}
 
-An abstract type representing a mathematical group. The type `T` represents a [`GroupType`](@ref), while `F` represents the number field (or number type) over which the group is defined.
+An abstract type representing a reductive group. The type `T` represents a [`GroupType`](@ref), while `F` represents the number field (or number type) over which the group is defined.
 """
 abstract type AbstractGroup{T<:GroupType, F} end
 
 """
-    algebra(::AbstractGroup{Lie}) -> AbstractLieAlgebra
+    algebra(::AbstractGroup{Lie, F}) -> AbstractLieAlgebra{F}
 
 Returns the Lie algebra of a given Lie group.
+
+# Examples
+```julia-repl
+julia> SO3 = LieGroup("SO", 3);
+
+julia> algebra(SO3)
+LieAlgebra 𝖘𝖔(3)
+ number type (or field): ComplexF64
+ weight type: Int64
+ dimension: 3
+ rank (dimension of Cartan subalgebra): 1
+```
 """
 algebra(::AbstractGroup{Lie}) = error("Not implemented")
 
@@ -64,18 +75,18 @@ An abstract type representing a direct product group.
 """
 abstract type AbstractDirectProductGroup{T<:GroupType, F} <: AbstractGroup{T, F} end
 
-"""
-    AbstractGroupElem
+# """
+#     AbstractGroupElem
 
-An abstract type representing a group element.
-"""
+# An abstract type representing a group element.
+# """
 abstract type AbstractGroupElem end
 
-"""
-    group(::AbstractGroupElem) -> AbstractGroup
+# """
+#     group(::AbstractGroupElem) -> AbstractGroup
 
-Returns the group to which the given group element belongs.
-"""
+# Returns the group to which the given group element belongs.
+# """
 group(::AbstractGroupElem) = error("Not implemented")
 
 
@@ -115,17 +126,40 @@ Returns the name of the given Lie algebra.
 """
 name(::AbstractLieAlgebra) = error("Not implemented")
 
-"""
+@doc raw"""
     basis(::AbstractLieAlgebra)
 
-Returns the basis of the given Lie algebra.
+Returns a basis of the given Lie algebra. For example, the Lie algebra ``\mathfrak{so}(3, \mathbb{C})``,
+consists of skew-symmetric matrices and hence its (standard) basis is given by the matrices
+```math
+\left\{ 
+\begin{bmatrix} 0 & 0 & 0 \\ 0 & 0 & -1 \\ 0 & 1 & 0 \end{bmatrix},
+\begin{bmatrix} 0 & 0 & 1 \\ 0 & 0 & 0 \\ -1 & 0 & 0 \end{bmatrix},
+\begin{bmatrix} 0 & -1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix}
+\right\}
+```
 """
 basis(::AbstractLieAlgebra) = error("Not implemented")
 
-"""
+@doc raw"""
     chevalley_basis(::AbstractLieAlgebra)
 
-Returns the Chevalley basis of the given Lie algebra.
+Returns the Chevalley basis of the given Lie algebra. For example, for the Lie algebra ``\mathfrak{so}(3, \mathbb{C})`` returns 
+```math
+\left\{ 
+\underbrace{\begin{bmatrix} 0 & 0 & -1 \\ 0 & 0 & -i \\ 1 & i & 0 \end{bmatrix}}_{J_+},
+\underbrace{\begin{bmatrix} 0 & 0 & 1 \\ 0 & 0 & -i \\ -1 & i & 0 \end{bmatrix}}_{J_-},
+\underbrace{\begin{bmatrix} 0 & -i & 0 \\ i & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix}}_{J_3}
+\right\}
+```
+with the commutation relations
+```math
+\begin{aligned}
+[J_3, J_+] &= J_+ \\
+[J_3, J_-] &= -J_- \\
+[J_+, J_-] &= 2J_3
+\end{aligned}
+```
 """
 chevalley_basis(::AbstractLieAlgebra) = error("Not implemented")
 
@@ -144,18 +178,18 @@ Returns the rank (i.e. the dimension of the Cartan subalgebra) of the given Lie 
 rank(::AbstractLieAlgebra) = error("Not implemented")
 
 
-"""
-    AbstractLieAlgebraElem
+# """
+#     AbstractLieAlgebraElem
 
-An abstract type representing an element of a Lie algebra.
-"""
+# An abstract type representing an element of a Lie algebra.
+# """
 abstract type AbstractLieAlgebraElem end
 
-"""
-    algebra(::AbstractLieAlgebraElem) -> AbstractLieAlgebra
+# """
+#     algebra(::AbstractLieAlgebraElem) -> AbstractLieAlgebra
 
-Returns the Lie algebra to which the given Lie algebra element belongs.
-"""
+# Returns the Lie algebra to which the given Lie algebra element belongs.
+# """
 algebra(::AbstractLieAlgebraElem) = error("Not implemented")
 
 

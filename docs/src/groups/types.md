@@ -1,14 +1,9 @@
-# Group types
-
-```@docs
-AbstractGroup
-```
-
-Each [`AbstractGroup`](@ref) has a [`GroupType`](@ref) that are described below.
+# Types of groups
 
 ```@docs
 GroupType
 Finite
 Lie
 Mixed
+AbstractGroup
 ```

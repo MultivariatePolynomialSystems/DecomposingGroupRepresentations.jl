@@ -25,6 +25,7 @@ SO3 = LieGroup("SO", 3)
 a = MatrixGroupAction(SO3, [vars])
 V = FixedDegreePolynomials(vars, 2)
 ρ = GroupRepresentation(a, V)
+
 irrs = irreducibles(ρ)
 ```
 ```
