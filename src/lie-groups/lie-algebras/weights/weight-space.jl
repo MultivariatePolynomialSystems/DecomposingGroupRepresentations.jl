@@ -1,7 +1,7 @@
 export WeightSpace,
     space
 
-struct WeightSpace{T<:AbstractVectorSpace, W<:Weight}
+struct WeightSpace{T<:AbstractSpace, W<:Weight}
     weight::W
     space::T
 end
@@ -12,7 +12,7 @@ WeightSpace{T,W}(wv::WeightVector) where {T,W} = WeightSpace{T,W}(weight(wv), T(
 Base.convert(
     ::Type{WeightSpace{T, W}},
     ws::WeightSpace
-) where {T<:AbstractVectorSpace, W<:Weight} = WeightSpace(
+) where {T<:AbstractSpace, W<:Weight} = WeightSpace(
     convert(W, weight(ws)),
     convert(T, space(ws))
 )

@@ -2,7 +2,7 @@ export WeightStructure,
     weight_space,
     sym
 
-struct WeightStructure{T<:AbstractVectorSpace, W<:Weight}
+struct WeightStructure{T<:AbstractSpace, W<:Weight}
     weights::Vector{W} # Ordering needed for sym_weight_structure
     dict::Dict{W, WeightSpace{T, W}} # TODO: new type for WeightSpace{F,T,W}? Do all spaces have to be of the same type?
 end
@@ -11,7 +11,7 @@ WeightStructure{T,W}() where {T,W} = WeightStructure{T,W}(Weight[], Dict())
 
 WeightStructure(
     weights::Vector{<:Weight},
-    weight_spaces::Vector{<:AbstractVectorSpace}
+    weight_spaces::Vector{<:AbstractSpace}
 ) = WeightStructure(
     weights,
     Dict(zip(weights, [WeightSpace(w, V) for (w, V) in zip(weights, weight_spaces)]))
@@ -37,7 +37,7 @@ end
 Base.convert(
     ::Type{WeightStructure{T, W}},
     ws::WeightStructure
-) where {T<:AbstractVectorSpace, W<:Weight} = WeightStructure(
+) where {T<:AbstractSpace, W<:Weight} = WeightStructure(
     convert(Vector{W}, ws.weights),
     convert(Dict{W, WeightSpace{T, W}}, ws.dict)
 )
@@ -101,7 +101,7 @@ end
 
 Base.push!(ws::WeightStructure{T,W}, wv::WeightVector) where {T,W} = push!(ws, WeightSpace{T,W}(wv))
 
-function sym_weights_dict(ws::Vector{W}, p::Int) where W<:Weight
+function sym_weight_combs_dict(ws::Vector{W}, p::Int) where W<:Weight
     combs = multiexponents(; degree=p, nvars=length(ws))
     ws_dict = Dict{W, Vector{typeof(first(combs))}}()
     for comb in combs
@@ -117,54 +117,45 @@ end
 
 function sym_weight_struct(hw::W, A::AbstractLieAlgebra, p::Int, ws::WeightStructure{T,W}) where {T, W<:Weight}
     dir_sum_hws = sym(hw, A, p)
-    ws_dict = sym_weights_dict(weights(ws), p)
+    ws_dict = sym_weight_combs_dict(weights(ws), p)
     new_ws = WeightStructure{T,W}()
-    for hw in dir_sum_hws
+    for hw in keys(dir_sum_hws)
         combs = ws_dict[hw]
         w_sps = [*(weight_spaces(ws, comb.nzind; as_spaces=true), comb.nzval) for comb in combs]
         push!(new_ws, WeightSpace(hw, +(w_sps...)))
     end
-    return new_ws
+    return new_ws, dir_sum_hws
 end
 
-function sym(ws::WeightStructure{T,W}, d::Int) where {T, W}
-    d == 0 && return WeightStructure([WeightSpace(zero_weight(ws), field_space(ws))])
-    d == 1 && return ws
-    combs = multiexponents(; degree=d, nvars=nweights(ws))
-    new_weights_dict = Dict{W, Vector{typeof(first(combs))}}()
+function tensor_weight_combs_dict(ws₁::Vector{W}, ws₂::Vector{W}) where W<:Weight
+    combs = Base.Iterators.product(1:length(ws₁), 1:length(ws₂))
+    ws_dict = Dict{W, Vector{typeof(first(combs))}}()
     for comb in combs
-        w = sum([comb.nzval[i]*weight(ws, comb.nzind[i]) for i in 1:length(comb.nzind)])
-        if haskey(new_weights_dict, w)
-            push!(new_weights_dict[w], comb)
+        w = ws₁[comb[1]] + ws₂[comb[2]]
+        if haskey(ws_dict, w)
+            push!(ws_dict[w], comb)
         else
-            new_weights_dict[w] = [comb]
+            ws_dict[w] = [comb]
         end
     end
-    new_ws = WeightStructure{T,W}()
-    for (w, combs) in new_weights_dict
-        w_sps = [*(weight_spaces(ws, comb.nzind; as_spaces=true), comb.nzval) for comb in combs]
-        push!(new_ws, WeightSpace(w, +(w_sps...)))
-    end
-    return new_ws
+    return ws_dict
 end
 
-function tensor(ws₁::WeightStructure{T,W}, ws₂::WeightStructure{T,W}) where {T, W}
-    combs = Base.Iterators.product(1:nweights(ws₁), 1:nweights(ws₂))
-    new_weights_dict = Dict{W, Vector{typeof(first(combs))}}()
-    for comb in combs
-        w = weight(ws₁, comb[1]) + weight(ws₂, comb[2])
-        val = get(new_weights_dict, w, nothing)
-        if isnothing(val)
-            new_weights_dict[w] = [comb]
-        else
-            push!(new_weights_dict[w], comb)
-        end
-    end
+function tensor_weight_struct(
+    hw₁::W,
+    hw₂::W,
+    A::AbstractLieAlgebra,
+    ws₁::WeightStructure{T,W},
+    ws₂::WeightStructure{T,W}
+) where {T, W<:Weight}
+    dir_sum_hws = tensor(hw₁, hw₂, A)
+    ws_dict = tensor_weight_combs_dict(weights(ws₁), weights(ws₂))
     new_ws = WeightStructure{T,W}()
-    for (weight, combs) in new_weights_dict
+    for hw in keys(dir_sum_hws)
+        combs = ws_dict[hw]
         w_sps = [*([weight_space(ws₁, comb[1]; as_space=true), weight_space(ws₂, comb[2]; as_space=true)]) for comb in combs]
         total_ws = +(w_sps...)
-        push!(new_ws, WeightSpace(weight, total_ws))
+        push!(new_ws, WeightSpace(hw, total_ws))
     end
-    return new_ws
+    return new_ws, dir_sum_hws
 end

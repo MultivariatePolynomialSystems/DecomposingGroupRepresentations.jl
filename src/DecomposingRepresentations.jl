@@ -11,6 +11,7 @@ export @polyvar, Variable, Monomial, Polynomial, Commutative, CreationOrder, Gra
 using Combinatorics: partitions, multiset_permutations, combinations, with_replacement_combinations
 
 using Base.Iterators: product, flatten
+using Crayons
 
 include("utils/basic.jl")
 include("utils/Gauss-Jordan.jl")

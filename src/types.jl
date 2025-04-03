@@ -4,7 +4,7 @@ export AbstractGroup, AbstractDirectProductGroup, AbstractGroupElem, AbstractGro
 export algebra, group
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export name, basis, chevalley_basis, dim, rank
-export AbstractVectorSpace, AbstractDirectSum, AbstractSymmetricPower, AbstractTensorProduct
+export AbstractSpace, AbstractDirectSum, AbstractSymmetricPower, AbstractTensorProduct
 export summands, nsummands, base_space, power, spaces
 export AbstractGroupRepresentation
 export action, space, irreducibles, isotypic_components
@@ -198,23 +198,23 @@ algebra(::AbstractLieAlgebraElem) = error("Not implemented")
 
 An abstract type representing a vector space. The type `F` represents the number field (or number type) over which the vector space is defined.
 """
-abstract type AbstractVectorSpace{T, F} end
+abstract type AbstractSpace{T, F} end
 
-field_type(::Type{<:AbstractVectorSpace{T, F}}) where {T, F} = F
+field_type(::Type{<:AbstractSpace{T, F}}) where {T, F} = F
 
 """
     basis(::AbstractVectorSpace)
 
 Returns a basis of the given vector space.
 """
-basis(::AbstractVectorSpace) = error("Not implemented")
+basis(::AbstractSpace) = error("Not implemented")
 
 """
     dim(::AbstractVectorSpace) -> Int
 
 Returns the dimension of the given vector space.
 """
-dim(::AbstractVectorSpace) = error("Not implemented")
+dim(::AbstractSpace) = error("Not implemented")
 
 
 """
@@ -222,7 +222,7 @@ dim(::AbstractVectorSpace) = error("Not implemented")
 
 An abstract type representing a direct sum of vector spaces over the field (or number type) `F`.
 """
-abstract type AbstractDirectSum{T, F} <: AbstractVectorSpace{T, F} end
+abstract type AbstractDirectSum{T, F} <: AbstractSpace{T, F} end
 
 """
     summands(::AbstractDirectSum)
@@ -244,7 +244,7 @@ nsummands(::AbstractDirectSum) = error("Not implemented")
 
 An abstract type representing a symmetric power of a vector space over the field (or number type) `F`.
 """
-abstract type AbstractSymmetricPower{T, F} <: AbstractVectorSpace{T, F} end
+abstract type AbstractSymmetricPower{T, F} <: AbstractSpace{T, F} end
 
 @doc raw"""
     base_space(::AbstractSymmetricPower) -> AbstractVectorSpace
@@ -266,7 +266,7 @@ power(::AbstractSymmetricPower) = error("Not implemented")
 
 An abstract type representing a tensor product of vector spaces over the field `F`.
 """
-abstract type AbstractTensorProduct{T, F} <: AbstractVectorSpace{T, F} end
+abstract type AbstractTensorProduct{T, F} <: AbstractSpace{T, F} end
 
 """
     spaces(::AbstractTensorProduct) -> Tuple{AbstractVectorSpace}
@@ -281,7 +281,7 @@ spaces(::AbstractTensorProduct) = error("Not implemented")
 
 An abstract type representing a group representation. The type `T` represents a `GroupType`, and `S` represents an `AbstractVectorSpace`.
 """
-abstract type AbstractGroupRepresentation{T<:GroupType, S<:AbstractVectorSpace} end
+abstract type AbstractGroupRepresentation{T<:GroupType, S<:AbstractSpace} end
 
 """
     action(::AbstractGroupRepresentation) -> AbstractGroupAction

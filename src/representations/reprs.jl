@@ -4,7 +4,7 @@ export GroupRepresentation,
     isotypic_components
 
 
-struct GroupRepresentation{A<:AbstractGroupAction{Lie}, T<:AbstractVectorSpace} <: AbstractGroupRepresentation{Lie, T}
+struct GroupRepresentation{A<:AbstractGroupAction{Lie}, T<:AbstractSpace} <: AbstractGroupRepresentation{Lie, T}
     action::A
     V::T
 end
@@ -34,3 +34,5 @@ end
 summands(
     ρ::GroupRepresentation{<:AbstractGroupAction, <:AbstractDirectSum}
 ) = [GroupRepresentation(action(ρ), V) for V in summands(space(ρ))]
+
+GroupRepresentation(a::AbstractGroupAction{Lie}, V::HighestWeightModule) = IrreducibleRepresentation(a, V)

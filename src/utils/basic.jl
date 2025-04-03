@@ -167,10 +167,17 @@ function rref(
     return polynomials(N, mons)
 end
 
-function zero_combinations(F::Vector{<:AbstractPolynomial}; tol::Real=1e-5)
+function zero_combinations(F::Vector{<:AbstractPolynomial{T}}; tol::Real=1e-5, logging::Bool=true) where T
     mons = monomials(F; as_monvec=false)
     M = coeffs_matrix(F, mons)
+    # @assert size(M, 1) ≥ size(M, 2)
+    if size(M, 1) > size(M, 2)
+        logging && print(crayon"#f4d03f", "Squaring up the $(size(M)) coefficients matrix...\n")
+        M = rand(T, size(M, 2), size(M, 1)) * M
+    end
+    logging && print(crayon"#f4d03f", "Computing nullspace of $(size(M)) matrix...\n")
     N = Matrix(transpose(nullspace(M; atol=tol)))
+    sparsify!(N, tol)
     rref!(N)
     sparsify!(N, tol)
     return eachrow(N)
@@ -209,4 +216,8 @@ function div_by_smallest_coeff(f::Polynomial; tol::Real=1e-5)
     cs = coefficients(f)/c
     sparsify!(cs, tol)
     return Polynomial(cs, monomials(f))
+end
+
+function vec_subscript(v::AbstractVector{<:Integer})
+    return join([subscript(vᵢ) for vᵢ in v], "ˏ")
 end

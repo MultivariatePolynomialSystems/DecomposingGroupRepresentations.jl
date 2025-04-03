@@ -6,7 +6,7 @@ export DirectSum,
     factors
 
 
-struct DirectSum{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractDirectSum{T, F}
+struct DirectSum{T, F, S<:AbstractSpace{T, F}} <: AbstractDirectSum{T, F}
     summands::Vector{S}
 end
 
@@ -16,15 +16,21 @@ dim(V::DirectSum) = sum(dim.(summands(V)))
 basis(V::DirectSum) = vcat([basis(Vi) for Vi in summands(V)]...)
 
 
-struct SymmetricPower{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractSymmetricPower{T, F}
+struct SymmetricPower{T, F, S<:AbstractSpace{T, F}} <: AbstractSymmetricPower{T, F}
     base_space::S
     power::Int
+
+    function SymmetricPower{T, F, S}(base_space::S, power::Int) where {T, F, S<:AbstractSpace{T, F}}
+        power < 1 && throw(ArgumentError("Power must be a positive integer"))
+        power == 1 && return base_space
+        return new(base_space, power)
+    end
 end
 
 SymmetricPower(
-    vars::Vector{V},
-    power::Integer
-) where {V<:Variable} = SymmetricPower(VectorSpace{V, ComplexF64}(vars), power)
+    base_space::S,
+    power::Int
+) where {T, F, S<:AbstractSpace{T, F}} = SymmetricPower{T, F, S}(base_space, power)
 
 base_space(V::SymmetricPower) = V.base_space
 power(V::SymmetricPower) = V.power
@@ -40,37 +46,45 @@ function Base.show(io::IO, V::SymmetricPower; indent::Int=0)
     print(io, " "^indent, " power: $(power(V))")
 end
 
+to_string(V::SymmetricPower) = "Sym$(superscript(power(V)))($(to_string(base_space(V))))"
 
-struct TensorProduct{T, F, S<:AbstractVectorSpace{T, F}} <: AbstractTensorProduct{T, F}
-    factors::Vector{S}
 
-    function TensorProduct{T,F,S}(factors::Vector{S}) where {T, F, S<:AbstractVectorSpace{T, F}}
-        all_vars = ∪([variables(V) for V in factors]...)
-        sum_nvars = sum([nvariables(V) for V in factors])
-        if length(all_vars) != sum_nvars
-            throw(ArgumentError("Factors must have disjoint variables"))
-        end
-        return new(factors)
+struct TensorProduct{T, F, S₁<:AbstractSpace{T,F}, S₂<:AbstractSpace{T,F}} <: AbstractTensorProduct{T, F}
+    V₁::S₁
+    V₂::S₂
+
+    function TensorProduct{T,F,S₁,S₂}(V₁::S₁, V₂::S₂) where {T, F, S₁<:AbstractSpace{T,F}, S₂<:AbstractSpace{T,F}}
+        # all_vars = variables(V₁) ∪ variables(V₂)
+        # if length(all_vars) != nvariables(V₁) + nvariables(V₂)
+        #     println("V₁: ", variables(V₁))
+        #     println("V₂: ", variables(V₂))
+        #     throw(ArgumentError("Spaces must have disjoint variables"))
+        # end
+        return new(V₁, V₂)
     end
 end
 
 TensorProduct(
+    V₁::S₁,
+    V₂::S₂
+) where {T, F, S₁<:AbstractSpace{T,F}, S₂<:AbstractSpace{T,F}} = TensorProduct{T, F, S₁, S₂}(V₁, V₂)
+
+function TensorProduct(
     factors::Vector{S}
-) where {T, F, S<:AbstractVectorSpace{T, F}} = length(factors) == 1 ? factors[1] : TensorProduct{T, F, S}(factors)
+) where {T, F, S<:AbstractSpace{T, F}}
+    length(factors) == 1 && return factors[1]
+    return TensorProduct(factors[1], TensorProduct(factors[2:end]))
+end
 
-TensorProduct(
-    V::AbstractVectorSpace{T, F},
-    Vs::Vector{<:AbstractVectorSpace{T, F}}
-) where {T, F} = TensorProduct(vcat([V], Vs))
-
-factors(V::TensorProduct) = V.factors
-factor(V::TensorProduct, i::Int) = factors(V)[i]
-factors(V::TensorProduct, inds...) = getindex(factors(V), inds...)
-nfactors(V::TensorProduct) = length(factors(V))
+factors(V::TensorProduct) = [V.V₁, V.V₂]
+Base.first(V::TensorProduct) = V.V₁
+second(V::TensorProduct) = V.V₂
 dim(V::TensorProduct) = prod([dim(Vᵢ) for Vᵢ in factors(V)])
 
 function Base.show(io::IO, V::TensorProduct{T, F}; indent::Int=0) where {T,F}
-    println(io, " "^indent, "TensorProduct of dimension $(dim(V)) ($(nfactors(V)) factors)")
+    println(io, " "^indent, "TensorProduct V₁ ⊗ V₂ of dimension $(dim(V))")
     println(io, " "^indent, " element type: ", T)
     print(io, " "^indent, " number type (or field): ", F)
 end
+
+to_string(V::TensorProduct) = join([to_string(Vᵢ) for Vᵢ in factors(V)], " ⊗ ")

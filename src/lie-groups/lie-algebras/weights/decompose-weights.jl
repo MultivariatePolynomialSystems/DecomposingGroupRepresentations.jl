@@ -1,4 +1,4 @@
-export sym_weight_dict
+export sym_weight_muls_dict
 
 # TODO: works only for so(3)
 function ⊗(hw₁::Weight, hw₂::Weight, ::LieAlgebra)
@@ -30,6 +30,11 @@ function ⊗(hw₁::Weight, hw₂::Weight, A::SumLieAlgebra)
     return [vcat(collect(ws)...) for ws in all_ws][:]
 end
 
+function tensor(hw₁::Weight, hw₂::Weight, A::AbstractLieAlgebra)
+    ws = ⊗(hw₁, hw₂, A)
+    return Dict(zip(ws, ones(Int, length(ws)))) # TODO: Each weight has multiplicity 1
+end
+
 # TODO: works only for so(3)
 hw2all(hw::Weight, ::LieAlgebra) = [Weight([j]) for j in -hw[1]:hw[1]]
 hw2all(hw::Weight, ::ScalingLieAlgebra) = [hw]
@@ -41,7 +46,9 @@ function hw2all(hw::Weight, A::SumLieAlgebra)
     return [vcat(collect(ws)...) for ws in all_ws][:]
 end
 
-function sym_weight_dict(hw::T, A::AbstractLieAlgebra, p::Int) where T<:Weight
+# Returns the dictionary of weights of Symᵖ(V(hw)) and the highest weight of Symᵖ(V(hw))
+# The values of the dictionary are the multiplicities of the corresponding weights
+function sym_weight_muls_dict(hw::T, A::AbstractLieAlgebra, p::Int) where T<:Weight
     ws = hw2all(hw, A)
     combs = multiexponents(; degree=p, nvars=length(ws))
     ws_dict = Dict{T, Int}()
@@ -52,19 +59,16 @@ function sym_weight_dict(hw::T, A::AbstractLieAlgebra, p::Int) where T<:Weight
     return p*hw, ws_dict
 end
 
-# # TODO: works only for so(3)
-# child_weights(hw::T, ::LieAlgebra) where T<:Weight = iszero(hw[1]) ? T[] : [Weight([hw[1]-1])]
-# child_weights(::T, ::ScalingLieAlgebra) where T<:Weight = T[]
-# function child_weights(hw::Weight, A::SumLieAlgebra)
-#     ws = split_weight(hw, A)
-#     all_child_ws = [child_weights(w, alg) for (w, alg) in zip(ws, algebras(A))]
-#     full_child_ws = [[copy(ws) for _ in child_ws] for child_ws in all_child_ws]
-#     for (i, child_ws) in enumerate(all_child_ws)
-#         for (j, w) in enumerate(child_ws)
-#             full_child_ws[i][j][i] = w
-#         end
+# function tensor_weight_muls_dict(hw₁::T, hw₂::T, A::AbstractLieAlgebra) where T<:Weight
+#     ws₁ = hw2all(hw₁, A)
+#     ws₂ = hw2all(hw₂, A)
+#     ws_dict = Dict{T, Int}()
+#     ws_prod = product(ws₁, ws₂)
+#     for ws in ws_prod
+#         w = ws[1] + ws[2]
+#         ws_dict[w] = get(ws_dict, w, 0) + 1
 #     end
-#     return [vcat(ch_ws...) for ch_ws in flatten(full_child_ws)]
+#     return ws_dict
 # end
 
 function some_highest_weight(
@@ -89,12 +93,12 @@ function sym!(
     hw::W,
     A::AbstractLieAlgebra,
     ws_dict::Dict{W, Int},
-    decomp_hws::Union{Set{W}, Vector{W}}
+    decomp_hws::Dict{W, Int}
 ) where W<:Weight
     if ws_dict[hw] != 0
         orbit_ws = hw2all(hw, A)
         while ws_dict[hw] > 0
-            push!(decomp_hws, hw)
+            decomp_hws[hw] = get(decomp_hws, hw, 0) + 1
             [ws_dict[w] -= 1 for w in orbit_ws]
         end
         for w in collect(keys(ws_dict))
@@ -106,9 +110,9 @@ function sym!(
     sym!(shw, A, ws_dict, decomp_hws)
 end
 
-function sym(hw::T, A::AbstractLieAlgebra, p::Int; with_muls::Bool=false) where T<:Weight
-    sym_hw, ws_dict = sym_weight_dict(hw, A, p)
-    decomp_hws = with_muls ? T[] : Set{T}()
+function sym(hw::W, A::AbstractLieAlgebra, p::Int) where W<:Weight
+    sym_hw, ws_dict = sym_weight_muls_dict(hw, A, p)
+    decomp_hws = Dict{W, Int}() # for the weight key gives its multiplicity
     sym!(sym_hw, A, ws_dict, decomp_hws)
-    return collect(decomp_hws)
+    return decomp_hws
 end

@@ -21,7 +21,7 @@ group(a::MatrixGroupAction) = a.group
 action_vectors(a::MatrixGroupAction) = a.vars
 naction_vectors(a::MatrixGroupAction) = length(action_vectors(a))
 DynamicPolynomials.variables(a::MatrixGroupAction) = vcat(action_vectors(a)...)
-space(a::MatrixGroupAction{T, F}) where {T,F} = VectorSpace(F, variables(a))
+space(a::MatrixGroupAction{T, F}) where {T,F} = VariableSpace{F}(variables(a))
 
 function Base.show(io::IO, a::MatrixGroupAction)
     println(io, "MatrixGroupAction of $(name(group(a)))")
@@ -39,7 +39,7 @@ end
 group(a::ScalingLieGroupAction) = a.group
 action_vector(a::ScalingLieGroupAction) = a.vars
 DynamicPolynomials.variables(a::ScalingLieGroupAction) = action_vector(a)
-space(a::ScalingLieGroupAction{F}) where F = VectorSpace(F, action_vector(a))
+space(a::ScalingLieGroupAction{F}) where F = VariableSpace{F}(action_vector(a))
 
 ScalingLieGroupAction(v::Vector{<:Variable}) = ScalingLieGroupAction(ScalingLieGroup{ComplexF64}(length(v)), v)
 
@@ -64,17 +64,17 @@ function show_action(io::IO, a::ScalingLieGroupAction; offset::Int=0)
     else
         @polyvar λ[1:size(U, 1)]
     end
-    action = []
+    str_action = []
     vars = action_vector(a)
     for j in axes(U, 1)
         nzind, nzval = findnz(U[j, :])
-        exprs = (λ[j].^nzval).*vars[nzind]
-        push!(action, collect(zip(vars[nzind], exprs)))
+        str_exprs = [repr(λ[j]) * (val != 1 ? superscript(val) : "") * repr(vars[ind]) for (val, ind) in zip(nzval, nzind)]
+        push!(str_action, collect(zip(vars[nzind], str_exprs)))
     end
-    for free_action in action
+    for free_action in str_action
         print(io, "\n", " "^offset)
         for (j, (var, expr)) in enumerate(free_action)
-            print(io, repr(var), " ↦ ", repr(expr))
+            print(io, repr(var), " ↦ ", expr)
             j < length(free_action) && print(io, ", ")
         end
     end

@@ -19,3 +19,11 @@ Base.getindex(w::Weight, i::Integer) = w.weight[i]
 Base.getindex(w::Weight, inds...) = getindex(w.weight, inds...)
 Base.length(w::Weight) = length(w.weight)
 Base.eachindex(w::Weight) = eachindex(w.weight)
+
+function str_irr(V::String, w::Weight)
+    return V * vec_subscript(w.weight)
+end
+
+function str_irr_decomp(V::String, ws_with_muls::Dict{W, Int}) where W<:Weight
+    return join([(mul==1 ? "" : "$(mul)") * str_irr(V, w) for (w, mul) in ws_with_muls], " ⊕ ")
+end

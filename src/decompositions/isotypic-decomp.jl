@@ -7,6 +7,24 @@ struct IsotypicDecomposition{A<:AbstractGroupAction{Lie}, T<:GroupRepresentation
 end
 
 function IsotypicDecomposition(
+    irreds::Vector{T},
+    ρ::GroupRepresentation{A}
+) where {A<:AbstractGroupAction{Lie}, T<:IrreducibleRepresentation{A}}
+    a = action(first(irreds))
+    W = weight_type(algebra(a))
+    iso_dict = Dict{W, IsotypicComponent}()
+    for irr in irreds
+        hw = highest_weight(irr)
+        if haskey(iso_dict, hw)
+            push!(iso_dict[hw], irr)
+        else
+            iso_dict[hw] = IsotypicComponent(a, hw, [irr])
+        end
+    end
+    return IsotypicDecomposition(ρ, iso_dict)
+end
+
+function IsotypicDecomposition(
     irr_decomp::IrreducibleDecomposition{A, T, Ir}
 ) where {A, T, Ir}
     a = action(irr_decomp)
@@ -37,6 +55,9 @@ isotypic_components(ID::IsotypicDecomposition) = values(ID.iso_dict)
 nisotypic(ID::IsotypicDecomposition) = length(ID.iso_dict)
 dim(ID::IsotypicDecomposition) = dim(ID.ρ)
 Base.getindex(ID::IsotypicDecomposition, w::Weight) = ID.iso_dict[w]
+Base.length(ID::IsotypicDecomposition) = length(ID.iso_dict)
+Base.iterate(ID::IsotypicDecomposition) = iterate(isotypic_components(ID))
+Base.iterate(ID::IsotypicDecomposition, state) = iterate(isotypic_components(ID), state)
 
 function Base.show(io::IO, iso::IsotypicDecomposition)
     println(io, "IsotypicDecomposition of $(name(group(iso)))-action on $(dim(iso))-dimensional vector space")

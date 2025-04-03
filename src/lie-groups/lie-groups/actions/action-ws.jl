@@ -67,7 +67,7 @@ hw_spaces(
 ) = reduce(∩, [hw_spaces(action, V) for action in lie_actions(a)])
 
 function weight_structure(
-    a::AbstractGroupAction{Lie, F},
+    a::DirectProductGroupAction{Lie, F},
     V::VariableSpace{F, Variable{T,S}};
 ) where {F, T, S}
     hw_struct = hw_spaces(a, V)

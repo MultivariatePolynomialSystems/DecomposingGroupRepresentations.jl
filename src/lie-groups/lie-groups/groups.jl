@@ -44,10 +44,12 @@ struct ScalingLieGroup{F} <: AbstractGroup{Lie, F}
 end
 
 ScalingLieGroup{F}(size::Int) where F = ScalingLieGroup("ℂˣ", ScalingLieAlgebra{F}(size))
+ScalingLieGroup(size::Int) = ScalingLieGroup{ComplexF64}(size)
 function ScalingLieGroup{F}(exps::Matrix{Int}) where F
     name = size(exps, 1) == 1 ? "ℂˣ" : "(ℂˣ)$(superscript(size(exps, 1)))"
     ScalingLieGroup(name, ScalingLieAlgebra{F}(exps))
 end
+ScalingLieGroup(exps::Matrix{Int}) = ScalingLieGroup{ComplexF64}(exps)
 
 name(G::ScalingLieGroup) = G.name
 algebra(G::ScalingLieGroup) = G.algebra
@@ -126,7 +128,7 @@ julia> SO3 = LieGroup("SO", 3);
 julia> T = ScalingLieGroup{ComplexF64}([1 2 3 4; -1 -2 -3 -4]);
 
 julia> SO3 × SO3 × T
-DirectProductLieGroup SO(3) × SO(3) × (ℂˣ)²
+DirectProductGroup SO(3) × SO(3) × (ℂˣ)²
  number type (or field): ComplexF64
  3 factors: SO(3), SO(3), (ℂˣ)²
  Lie algebra:
@@ -158,7 +160,7 @@ algebra(G::DirectProductGroup) = SumLieAlgebra([algebra(Gᵢ) for Gᵢ in groups
 ) where F = DirectProductGroup("$(name(G₁)) × $(name(G₂))", vcat(groups(G₁), [G₂]))
 
 function Base.show(io::IO, G::DirectProductGroup{T, F}) where {T, F}
-    println(io, "DirectProductLieGroup $(name(G))")
+    println(io, "DirectProductGroup $(name(G))")
     println(io, " number type (or field): $(F)")
     println(io, " $(ngroups(G)) factors: ", join([name(Gᵢ) for Gᵢ in groups(G)], ", "))
     println(io, " Lie algebra:")

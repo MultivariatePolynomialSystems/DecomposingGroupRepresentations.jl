@@ -2,7 +2,7 @@ export HighestWeightModule,
     weyl_dim
 
 
-struct HighestWeightModule{T, F, A<:AbstractGroupAction{Lie, F}, Wv<:WeightVector{T}} <: AbstractVectorSpace{T, F}
+struct HighestWeightModule{T, F, A<:AbstractGroupAction{Lie, F}, Wv<:WeightVector{T}} <: AbstractSpace{T, F}
     action::A
     hw_vector::Wv
 end
@@ -71,4 +71,8 @@ function weight_structure(
         push!(ws, wv)
     end
     return ws
+end
+
+function to_string(V::HighestWeightModule)
+    return "V" * vec_subscript(highest_weight(V).weight)
 end
