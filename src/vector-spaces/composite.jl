@@ -79,7 +79,7 @@ end
 factors(V::TensorProduct) = [V.V₁, V.V₂]
 Base.first(V::TensorProduct) = V.V₁
 second(V::TensorProduct) = V.V₂
-dim(V::TensorProduct) = prod([dim(Vᵢ) for Vᵢ in factors(V)])
+dim(V::TensorProduct) = dim(V.V₁) * dim(V.V₂)
 
 function Base.show(io::IO, V::TensorProduct{T, F}; indent::Int=0) where {T,F}
     println(io, " "^indent, "TensorProduct V₁ ⊗ V₂ of dimension $(dim(V))")

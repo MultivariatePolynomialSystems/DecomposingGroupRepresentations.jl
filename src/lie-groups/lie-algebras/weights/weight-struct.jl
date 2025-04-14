@@ -142,20 +142,17 @@ function tensor_weight_combs_dict(ws₁::Vector{W}, ws₂::Vector{W}) where W<:W
 end
 
 function tensor_weight_struct(
-    hw₁::W,
-    hw₂::W,
-    A::AbstractLieAlgebra,
+    cg_decomp::Dict{W, Int},
     ws₁::WeightStructure{T,W},
     ws₂::WeightStructure{T,W}
 ) where {T, W<:Weight}
-    dir_sum_hws = tensor(hw₁, hw₂, A)
     ws_dict = tensor_weight_combs_dict(weights(ws₁), weights(ws₂))
     new_ws = WeightStructure{T,W}()
-    for hw in keys(dir_sum_hws)
+    for hw in keys(cg_decomp)
         combs = ws_dict[hw]
         w_sps = [*([weight_space(ws₁, comb[1]; as_space=true), weight_space(ws₂, comb[2]; as_space=true)]) for comb in combs]
         total_ws = +(w_sps...)
         push!(new_ws, WeightSpace(hw, total_ws))
     end
-    return new_ws, dir_sum_hws
+    return new_ws
 end

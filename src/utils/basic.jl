@@ -3,6 +3,7 @@ export rref, monomials, coeffs_matrix, polynomials
 export num_mons
 export superscript, subscript
 export multiexponents, div_by_smallest_coeff
+export eye, a2p, p2a, rand_unit
 
 a2p(M::AbstractMatrix{<:Number}) = [M; ones(eltype(M), 1, size(M, 2))]
 p2a(M::AbstractMatrix{<:Number}) = (M./M[end:end,:])[1:end-1,:]
@@ -157,28 +158,42 @@ polynomials(
 ) where {V,M,T} = [Polynomial{V,M,T}(c, copy(mons)) for c in C]
 
 function rref(
-    F::Vector{<:AbstractPolynomial{T}}
+    F::Vector{<:AbstractPolynomial{T}};
+    tol::Real=1e-5
 ) where T
     mons = monomials(F)
     M = Matrix(transpose(coeffs_matrix(F, mons)))
-    rref!(M)
-    sparsify!(M, 1e-8)
+    rref!(M, tol)
+    sparsify!(M, tol)
     N = filter(row -> !iszero(row), eachrow(M))
     return polynomials(N, mons)
 end
 
-function zero_combinations(F::Vector{<:AbstractPolynomial{T}}; tol::Real=1e-5, logging::Bool=true) where T
+function zero_combinations(
+    F::Vector{<:AbstractPolynomial{T}};
+    tol::Real=1e-5,
+    logging::Bool=true,
+    square_up::Bool=true
+) where T
     mons = monomials(F; as_monvec=false)
     M = coeffs_matrix(F, mons)
     # @assert size(M, 1) ≥ size(M, 2)
-    if size(M, 1) > size(M, 2)
+    if size(M, 1) > size(M, 2) && square_up
         logging && print(crayon"#f4d03f", "Squaring up the $(size(M)) coefficients matrix...\n")
         M = rand(T, size(M, 2), size(M, 1)) * M
     end
     logging && print(crayon"#f4d03f", "Computing nullspace of $(size(M)) matrix...\n")
     N = Matrix(transpose(nullspace(M; atol=tol)))
+    logging && print(crayon"#f4d03f", "Nullspace is $(size(N, 1))-dimensional\n")
     sparsify!(N, tol)
-    rref!(N)
+    rref!(N, tol)
+    display(N)
+    for n in N
+        if norm(n) > 1e3
+            display(N)
+            error("Nullspace contains large coefficients")
+        end
+    end
     sparsify!(N, tol)
     return eachrow(N)
 end
@@ -211,13 +226,23 @@ function multiexponents(; degree::Tv, nvars::Ti, upto::Bool=false) where {Tv<:In
 end
 
 function div_by_smallest_coeff(f::Polynomial; tol::Real=1e-5)
-    c = minimum(abs, coefficients(f))
-    c ≈ 0 && return f
-    cs = coefficients(f)/c
+    cs = coefficients(f)
+    sparsify!(cs, tol)
+    nzcs = filter(x -> abs(x) > tol, cs)
+    c = minimum(abs, nzcs)
+    cs = cs/c
     sparsify!(cs, tol)
     return Polynomial(cs, monomials(f))
 end
 
 function vec_subscript(v::AbstractVector{<:Integer})
     return join([subscript(vᵢ) for vᵢ in v], "ˏ")
+end
+
+function rand_unit(dims...)
+    r = rand(ComplexF64, dims...)
+    for i in eachindex(r)
+        r[i] = r[i]/abs(r[i])
+    end
+    return r
 end

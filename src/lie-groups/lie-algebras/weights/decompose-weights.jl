@@ -1,4 +1,4 @@
-export sym_weight_muls_dict
+export sym_weight_muls_dict, ⊗
 
 # TODO: works only for so(3)
 function ⊗(hw₁::Weight, hw₂::Weight, ::LieAlgebra)
@@ -32,8 +32,15 @@ end
 
 function tensor(hw₁::Weight, hw₂::Weight, A::AbstractLieAlgebra)
     ws = ⊗(hw₁, hw₂, A)
-    return Dict(zip(ws, ones(Int, length(ws)))) # TODO: Each weight has multiplicity 1
+    ws_muls = Dict(zip(ws, ones(Int, length(ws)))) # TODO: Each weight has multiplicity 1
+    @assert weyl_dim(ws_muls, A) == weyl_dim(hw₁, A)*weyl_dim(hw₂, A)
+    return ws_muls
 end
+
+weyl_dim(
+    ws_muls::Dict{W, Int},
+    A::AbstractLieAlgebra
+) where W<:Weight = sum([weyl_dim(w, A)*m for (w, m) in ws_muls])
 
 # TODO: works only for so(3)
 hw2all(hw::Weight, ::LieAlgebra) = [Weight([j]) for j in -hw[1]:hw[1]]
@@ -114,5 +121,6 @@ function sym(hw::W, A::AbstractLieAlgebra, p::Int) where W<:Weight
     sym_hw, ws_dict = sym_weight_muls_dict(hw, A, p)
     decomp_hws = Dict{W, Int}() # for the weight key gives its multiplicity
     sym!(sym_hw, A, ws_dict, decomp_hws)
+    @assert weyl_dim(decomp_hws, A) == binomial(weyl_dim(hw, A) + p - 1, p)
     return decomp_hws
 end

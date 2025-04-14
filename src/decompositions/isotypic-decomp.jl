@@ -1,5 +1,6 @@
 export IsotypicDecomposition,
-    invariant_component
+    invariant_component,
+    representation
 
 struct IsotypicDecomposition{A<:AbstractGroupAction{Lie}, T<:GroupRepresentation{A}, W<:Weight, Ic<:IsotypicComponent}
     ρ::T
@@ -62,8 +63,8 @@ Base.iterate(ID::IsotypicDecomposition, state) = iterate(isotypic_components(ID)
 function Base.show(io::IO, iso::IsotypicDecomposition)
     println(io, "IsotypicDecomposition of $(name(group(iso)))-action on $(dim(iso))-dimensional vector space")
     println(io, " number of isotypic components: ", nisotypic(iso))
-    println(io, " multiplicities of irreducibles: ", join([mul(ic) for ic in isotypic_components(iso)], ", "))
-    print(io, " dimensions of isotypic components: ", join([dim(ic) for ic in isotypic_components(iso)], ", "))
+    println(io, " maximum multiplicity of irreducibles: ", maximum([mul(ic) for ic in isotypic_components(iso)]))
+    print(io, " maximum dimension of isotypic components: ", maximum([dim(ic) for ic in isotypic_components(iso)]))
 end
 
 invariant_component(

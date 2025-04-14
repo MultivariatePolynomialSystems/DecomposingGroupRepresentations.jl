@@ -1,5 +1,6 @@
 export IsotypicComponent,
-    mul
+    mul,
+    hw_vectors
 
 
 struct IsotypicComponent{
@@ -18,7 +19,7 @@ mul(ρ::IsotypicComponent) = length(ρ.irreds)
 space(ρ::IsotypicComponent) = DirectSum([space(ρᵢ) for ρᵢ in irreducibles(ρ)])
 basis(ρ::IsotypicComponent) = basis(space(ρ))
 dim(ρ::IsotypicComponent) = sum([dim(ρᵢ) for ρᵢ in irreducibles(ρ)])
-hw_vectors(ρ::IsotypicComponent) = [hw_vector(ρᵢ) for ρᵢ in irreducibles(ρ)]
+hw_vectors(ρ::IsotypicComponent; as_vectors::Bool=false) = [as_vectors ? vector(hw_vector(ρᵢ)) : hw_vector(ρᵢ) for ρᵢ in irreducibles(ρ)]
 isotypic_components(ρ::IsotypicComponent) = [ρ]
 
 function Base.show(io::IO, ::MIME"text/plain", ρ::IsotypicComponent)

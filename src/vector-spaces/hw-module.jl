@@ -2,10 +2,16 @@ export HighestWeightModule,
     weyl_dim
 
 
-struct HighestWeightModule{T, F, A<:AbstractGroupAction{Lie, F}, Wv<:WeightVector{T}} <: AbstractSpace{T, F}
+mutable struct HighestWeightModule{T, F, A<:AbstractGroupAction{Lie, F}, Wv<:WeightVector{T}} <: AbstractSpace{T, F}
     action::A
     hw_vector::Wv
+    # basis::Union{Vector{Wv}, Nothing}
 end
+
+# HighestWeightModule(
+#     action::A,
+#     hw_vector::Wv
+# ) where {A<:AbstractGroupAction{Lie}, Wv<:WeightVector} = HighestWeightModule(action, hw_vector, nothing)
 
 action(V::HighestWeightModule) = V.action
 group(V::HighestWeightModule) = group(action(V))
@@ -59,8 +65,14 @@ function basis(
     V::HighestWeightModule{T, ComplexF64} where T;
     as_weight_vectors::Bool=false
 )
-    orb = orbit(hw_vector(V), action(V), Set{weight_type(V)}())
-    return as_weight_vectors ? orb : [vector(wv) for wv in orb]
+    # if !isnothing(V.basis)
+    #     B = V.basis
+    # else
+    #     B = orbit(hw_vector(V), action(V), Set{weight_type(V)}())
+    #     V.basis = B
+    # end
+    B = orbit(hw_vector(V), action(V), Set{weight_type(V)}())
+    return as_weight_vectors ? B : [vector(wv) for wv in B]
 end
 
 function weight_structure(
