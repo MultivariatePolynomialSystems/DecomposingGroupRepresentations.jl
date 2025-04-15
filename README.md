@@ -26,7 +26,7 @@ a = MatrixGroupAction(SO3, [vars])
 V = FixedDegreePolynomials(vars, 2)
 ρ = GroupRepresentation(a, V)
 
-irrs = irreducibles(ρ)
+irreducibles(ρ)
 ```
 ```
 IrreducibleDecomposition of SO(3)-action on 6-dimensional vector space
