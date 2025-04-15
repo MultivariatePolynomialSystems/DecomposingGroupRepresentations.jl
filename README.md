@@ -1,17 +1,17 @@
 # DecomposingRepresentations.jl
 
-<!-- [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://multivariatepolynomialsystems.github.io/DecomposingRepresentations.jl/stable/) -->
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://multivariatepolynomialsystems.github.io/DecomposingRepresentations.jl/dev/)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://multivariatepolynomialsystems.github.io/DecomposingRepresentations.jl/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-purple.svg)](https://multivariatepolynomialsystems.github.io/DecomposingRepresentations.jl/dev/)
 <!-- [![Build Status](https://github.com/multivariatepolynomialsystems/DecomposingRepresentations.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/multivariatepolynomialsystems/DecomposingRepresentations.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/multivariatepolynomialsystems/DecomposingRepresentations.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/azoviktor/DecomposingRepresentations.jl) -->
 
-DecomposingRepresentations.jl is a Julia package for decomposing representations of reductive (finite and Lie) groups acting on multivariate polynomials.
+DecomposingRepresentations.jl is a Julia package for decomposing representations of reductive groups acting on multivariate polynomials.
 
 ## Installation
 
 Enter the Pkg REPL by pressing `]` from the Julia REPL and then type
 ```julia
-add https://github.com/MultivariatePolynomialSystems/DecomposingRepresentations.jl.git
+add DecomposingRepresentations
 ```
 To get back to the Julia REPL, press backspace.
 

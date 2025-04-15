@@ -15,6 +15,12 @@ nsummands(V::DirectSum) = length(summands(V))
 dim(V::DirectSum) = sum(dim.(summands(V)))
 basis(V::DirectSum) = vcat([basis(Vi) for Vi in summands(V)]...)
 
+function Base.show(io::IO, V::DirectSum; indent::Int=0)
+    println(io, " "^indent, "DirectSum of dimension $(dim(V))")
+    println(io, " "^indent, " nsummands: ", nsummands(V))
+    print(io, " "^indent, " dimensions of summands: ", join([dim(Vi) for Vi in summands(V)], ", "))
+end
+
 
 struct SymmetricPower{T, F, S<:AbstractSpace{T, F}} <: AbstractSymmetricPower{T, F}
     base_space::S

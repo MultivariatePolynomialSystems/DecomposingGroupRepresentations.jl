@@ -1,37 +1,44 @@
 # Vector spaces
 
 ```@docs
-AbstractVectorSpace
-basis(::AbstractVectorSpace)
-dim(::AbstractVectorSpace)
+AbstractSpace
+basis(::AbstractSpace)
+dim(::AbstractSpace)
 ```
 
-## VectorSpace
+## PolySpace
 
+```@docs
+PolySpace
+```
 
-
-## Direct sum
+## Direct sums
 
 ```@docs
 AbstractDirectSum
-summands(::AbstractDirectSum)
-nsummands(::AbstractDirectSum)
+summands
+nsummands
 ```
 
-## Symmetric power
+## Symmetric powers
 
 ```@docs
 AbstractSymmetricPower
 base_space
 power
+FixedDegreePolynomials
 ```
 
-## Tensor product
+## Tensor products
 
 ```@docs
 AbstractTensorProduct
-spaces
+factors
+FixedMultidegreePolynomials
 ```
 
 ## HighestWeightModule
 
+```@docs
+HighestWeightModule
+```

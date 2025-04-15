@@ -7,7 +7,7 @@ export name, basis, chevalley_basis, dim, rank
 export AbstractSpace, AbstractDirectSum, AbstractSymmetricPower, AbstractTensorProduct
 export summands, nsummands, base_space, power, spaces
 export AbstractGroupRepresentation
-export action, space, irreducibles, isotypic_components
+export action, space, irreducibles, isotypics
 
 
 """
@@ -194,7 +194,7 @@ algebra(::AbstractLieAlgebraElem) = error("Not implemented")
 
 
 """
-    AbstractVectorSpace{F}
+    AbstractSpace{F}
 
 An abstract type representing a vector space. The type `F` represents the number field (or number type) over which the vector space is defined.
 """
@@ -203,14 +203,14 @@ abstract type AbstractSpace{T, F} end
 field_type(::Type{<:AbstractSpace{T, F}}) where {T, F} = F
 
 """
-    basis(::AbstractVectorSpace)
+    basis(::AbstractSpace)
 
 Returns a basis of the given vector space.
 """
 basis(::AbstractSpace) = error("Not implemented")
 
 """
-    dim(::AbstractVectorSpace) -> Int
+    dim(::AbstractSpace) -> Int
 
 Returns the dimension of the given vector space.
 """
@@ -218,7 +218,7 @@ dim(::AbstractSpace) = error("Not implemented")
 
 
 """
-    AbstractDirectSum{F} <: AbstractVectorSpace{F}
+    AbstractDirectSum{F} <: AbstractSpace{F}
 
 An abstract type representing a direct sum of vector spaces over the field (or number type) `F`.
 """
@@ -238,48 +238,53 @@ Returns the number of summands in the given direct sum of vector spaces.
 """
 nsummands(::AbstractDirectSum) = error("Not implemented")
 
+dim(V::AbstractDirectSum) = sum([dim(Vᵢ) for Vᵢ in summands(V)])
+
 
 """
-    AbstractSymmetricPower{F} <: AbstractVectorSpace{F}
+    AbstractSymmetricPower{F} <: AbstractSpace{F}
 
 An abstract type representing a symmetric power of a vector space over the field (or number type) `F`.
 """
 abstract type AbstractSymmetricPower{T, F} <: AbstractSpace{T, F} end
 
 @doc raw"""
-    base_space(::AbstractSymmetricPower) -> AbstractVectorSpace
+    base_space(::AbstractSymmetricPower) -> AbstractSpace
 
 Returns the base vector space of the given symmetric power. I.e. for ``\mathrm{Sym}^n(V)``, this function returns ``V``.
 """
 base_space(::AbstractSymmetricPower) = error("Not implemented")
 
-"""
+@doc raw"""
     power(::AbstractSymmetricPower) -> Int
 
-Returns the power of the given symmetric power.
+Returns the power of the given symmetric power. I.e. for ``\mathrm{Sym}^n(V)``, this function returns ``n``.
 """
 power(::AbstractSymmetricPower) = error("Not implemented")
 
+dim(V::AbstractSymmetricPower) = num_mons(dim(base_space(V)), power(V))
+
 
 """
-    AbstractTensorProduct{F} <: AbstractVectorSpace{F}
+    AbstractTensorProduct{F} <: AbstractSpace{F}
 
 An abstract type representing a tensor product of vector spaces over the field `F`.
 """
 abstract type AbstractTensorProduct{T, F} <: AbstractSpace{T, F} end
 
 """
-    spaces(::AbstractTensorProduct) -> Tuple{AbstractVectorSpace}
+    factors(::AbstractTensorProduct)
 
-Returns the tuple of vector spaces that form the given tensor product.
+Returns an iterator through the factors of the given tensor product.
 """
-spaces(::AbstractTensorProduct) = error("Not implemented")
+factors(::AbstractTensorProduct) = error("Not implemented")
 
+dim(V::AbstractTensorProduct) = prod([dim(Vᵢ) for Vᵢ in factors(V)])
 
 """
-    AbstractGroupRepresentation{T<:GroupType, S<:AbstractVectorSpace}
+    AbstractGroupRepresentation{T<:GroupType, S<:AbstractSpace}
 
-An abstract type representing a group representation. The type `T` represents a `GroupType`, and `S` represents an `AbstractVectorSpace`.
+An abstract type representing a group representation. The type `T` represents a `GroupType`, and `S` represents an `AbstractSpace`.
 """
 abstract type AbstractGroupRepresentation{T<:GroupType, S<:AbstractSpace} end
 
@@ -298,7 +303,7 @@ Returns the group associated with the given group representation.
 group(ρ::AbstractGroupRepresentation) = group(action(ρ))
 
 """
-    space(::AbstractGroupRepresentation) -> AbstractVectorSpace
+    space(::AbstractGroupRepresentation) -> AbstractSpace
 
 Returns the vector space on which the given group representation acts.
 """
@@ -312,15 +317,15 @@ Returns the dimension of the vector space on which the given group representatio
 dim(ρ::AbstractGroupRepresentation) = dim(space(ρ))
 
 """
-    irreducibles(::AbstractGroupRepresentation) -> Any
+    irreducibles(::AbstractGroupRepresentation) -> IrreducibleDecomposition
 
-Returns the irreducible components of the given group representation.
+Returns a decomposition into irreducible subrepresentations of the given group representation.
 """
 irreducibles(::AbstractGroupRepresentation) = error("Not implemented")
 
 """
-    isotypic_components(::AbstractGroupRepresentation) -> Any
+    isotypics(::AbstractGroupRepresentation) -> IsotypicDecomposition
 
-Returns the isotypic components of the given group representation.
+Returns the decomposition to isotypic components of the given group representation.
 """
-isotypic_components(::AbstractGroupRepresentation) = error("Not implemented")
+isotypics(::AbstractGroupRepresentation) = error("Not implemented")

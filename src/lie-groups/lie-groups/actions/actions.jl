@@ -7,6 +7,27 @@ export MatrixGroupAction,
     are_commutative,
     act
 
+"""
+    struct MatrixGroupAction{T<:GroupType, F} <: AbstractGroupAction{T, F}
+
+Represents a group action of a matrix group on a set of variables.
+
+# Constructors
+```julia
+MatrixGroupAction(G::S, vectors::AbstractVector{<:AbstractVector{V}}) where {S<:AbstractGroup, V<:Variable}
+```
+
+# Examples
+```jldoctest
+julia> @polyvar x[1:3] y[1:3];
+
+julia> SO3 = LieGroup("SO", 3);
+
+julia> MatrixGroupAction(SO3, [x, y])
+MatrixGroupAction of SO(3)
+ 2 vectors under action: [x₁, x₂, x₃], [y₁, y₂, y₃]
+```
+"""
 struct MatrixGroupAction{T<:GroupType, F, S<:AbstractGroup{T,F}, V<:Variable} <: AbstractGroupAction{T, F}
     group::S
     vars::Vector{Vector{V}}
@@ -31,6 +52,37 @@ end
 
 
 # TODO: remove and leave MatrixGroupAction only?
+"""
+    ScalingLieGroupAction <: AbstractGroupAction
+
+Represents an action of a scaling Lie group on a set of variables.
+
+# Constructors
+```julia
+ScalingLieGroupAction(v::Vector{<:Variable})
+ScalingLieGroupAction(V::AbstractMatrix{<:Variable})
+ScalingLieGroupAction(G::ScalingLieGroup, v::Vector{<:Variable})
+```
+
+# Examples
+```jldoctest
+julia> @polyvar x[1:2, 1:3];
+
+julia> ScalingLieGroupAction(x)
+ScalingLieGroupAction of (ℂˣ)³
+ vector under action: [x₁₋₁, x₂₋₁, x₁₋₂, x₂₋₂, x₁₋₃, x₂₋₃]
+ action:
+  x₁₋₁ ↦ λ₁x₁₋₁, x₂₋₁ ↦ λ₁x₂₋₁
+  x₁₋₂ ↦ λ₂x₁₋₂, x₂₋₂ ↦ λ₂x₂₋₂
+  x₁₋₃ ↦ λ₃x₁₋₃, x₂₋₃ ↦ λ₃x₂₋₃
+
+julia> ScalingLieGroupAction(x[:])
+ScalingLieGroupAction of ℂˣ
+ vector under action: [x₁₋₁, x₂₋₁, x₁₋₂, x₂₋₂, x₁₋₃, x₂₋₃]
+ action:
+  x₁₋₁ ↦ λx₁₋₁, x₂₋₁ ↦ λx₂₋₁, x₁₋₂ ↦ λx₁₋₂, x₂₋₂ ↦ λx₂₋₂, x₁₋₃ ↦ λx₁₋₃, x₂₋₃ ↦ λx₂₋₃
+```
+"""
 struct ScalingLieGroupAction{F, T <: ScalingLieGroup{F}, V <: Variable} <: AbstractGroupAction{Lie, F}
     group::T
     vars::Vector{V}
@@ -87,6 +139,33 @@ function Base.show(io::IO, a::ScalingLieGroupAction)
     show_action(io, a; offset = 2)
 end
 
+"""
+    struct DirectProductGroupAction <: AbstractGroupAction
+
+Represents an action of a direct product group on a vector space.
+
+# Examples
+```jldoctest
+julia> @polyvar x[1:3, 1:2];
+
+julia> SO3 = LieGroup("SO", 3);
+
+julia> a₁ = MatrixGroupAction(SO3, eachcol(x))
+MatrixGroupAction of SO(3)
+ 2 vectors under action: [x₁₋₁, x₂₋₁, x₃₋₁], [x₁₋₂, x₂₋₂, x₃₋₂]
+
+julia> a₂ = ScalingLieGroupAction(x)
+ScalingLieGroupAction of (ℂˣ)²
+ vector under action: [x₁₋₁, x₂₋₁, x₃₋₁, x₁₋₂, x₂₋₂, x₃₋₂]
+ action:
+  x₁₋₁ ↦ λ₁x₁₋₁, x₂₋₁ ↦ λ₁x₂₋₁, x₃₋₁ ↦ λ₁x₃₋₁
+  x₁₋₂ ↦ λ₂x₁₋₂, x₂₋₂ ↦ λ₂x₂₋₂, x₃₋₂ ↦ λ₂x₃₋₂
+
+julia> a₁ × a₂
+DirectProductGroupAction of SO(3) × (ℂˣ)²
+ lie actions:
+```
+"""
 struct DirectProductGroupAction{T<:GroupType, F, S<:AbstractDirectProductGroup{T, F}} <: AbstractGroupAction{T, F}
     group::S
     lie_actions::Vector{AbstractGroupAction{Lie, F}}

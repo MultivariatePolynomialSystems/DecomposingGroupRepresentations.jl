@@ -172,7 +172,7 @@ end
 function zero_combinations(
     F::Vector{<:AbstractPolynomial{T}};
     tol::Real=1e-5,
-    logging::Bool=true,
+    logging::Bool=false,
     square_up::Bool=true
 ) where T
     mons = monomials(F; as_monvec=false)
@@ -187,7 +187,6 @@ function zero_combinations(
     logging && print(crayon"#f4d03f", "Nullspace is $(size(N, 1))-dimensional\n")
     sparsify!(N, tol)
     rref!(N, tol)
-    display(N)
     for n in N
         if norm(n) > 1e3
             display(N)
