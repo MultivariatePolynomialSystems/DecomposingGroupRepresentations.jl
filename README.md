@@ -1,23 +1,23 @@
-# DecomposingRepresentations.jl
+# DecomposingGroupRepresentations.jl
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://multivariatepolynomialsystems.github.io/DecomposingRepresentations.jl/stable/)
-[![Dev](https://img.shields.io/badge/docs-dev-purple.svg)](https://multivariatepolynomialsystems.github.io/DecomposingRepresentations.jl/dev/)
-<!-- [![Build Status](https://github.com/multivariatepolynomialsystems/DecomposingRepresentations.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/multivariatepolynomialsystems/DecomposingRepresentations.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/multivariatepolynomialsystems/DecomposingRepresentations.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/azoviktor/DecomposingRepresentations.jl) -->
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://multivariatepolynomialsystems.github.io/DecomposingGroupRepresentations.jl/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-purple.svg)](https://multivariatepolynomialsystems.github.io/DecomposingGroupRepresentations.jl/dev/)
+<!-- [![Build Status](https://github.com/multivariatepolynomialsystems/DecomposingGroupRepresentations.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/multivariatepolynomialsystems/DecomposingGroupRepresentations.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Coverage](https://codecov.io/gh/multivariatepolynomialsystems/DecomposingGroupRepresentations.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/azoviktor/DecomposingGroupRepresentations.jl) -->
 
-DecomposingRepresentations.jl is a Julia package for decomposing representations of reductive groups acting on multivariate polynomials.
+DecomposingGroupRepresentations.jl is a Julia package for decomposing representations of reductive groups acting on multivariate polynomials.
 
 ## Installation
 
 Enter the Pkg REPL by pressing `]` from the Julia REPL and then type
 ```julia
-add DecomposingRepresentations
+add DecomposingGroupRepresentations
 ```
 To get back to the Julia REPL, press backspace.
 
 ## Usage
 ```julia
-using DecomposingRepresentations
+using DecomposingGroupRepresentations
 
 @polyvar x y z
 vars = [x, y, z]

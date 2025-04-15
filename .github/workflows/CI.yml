@@ -73,6 +73,6 @@ jobs:
         shell: julia --project=docs --color=yes {0}
         run: |
           using Documenter: DocMeta, doctest
-          using DecomposingRepresentations
-          DocMeta.setdocmeta!(DecomposingRepresentations, :DocTestSetup, :(using DecomposingRepresentations); recursive=true)
-          doctest(DecomposingRepresentations)
+          using DecomposingGroupRepresentations
+          DocMeta.setdocmeta!(DecomposingGroupRepresentations, :DocTestSetup, :(using DecomposingGroupRepresentations); recursive=true)
+          doctest(DecomposingGroupRepresentations)

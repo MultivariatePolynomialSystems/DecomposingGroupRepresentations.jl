@@ -1,6 +1,6 @@
-using DecomposingRepresentations
+using DecomposingGroupRepresentations
 using Test
 
-@testset "DecomposingRepresentations.jl" begin
+@testset "DecomposingGroupRepresentations.jl" begin
     
 end

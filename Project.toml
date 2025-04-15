@@ -1,4 +1,4 @@
-name = "DecomposingRepresentations"
+name = "DecomposingGroupRepresentations"
 uuid = "3934549d-b4b9-4a85-8fa6-9c281fbf1a3e"
 authors = ["Viktor Korotynskiy <korotynskiy.viktor@gmail.com> and contributors"]
 version = "0.1.0"

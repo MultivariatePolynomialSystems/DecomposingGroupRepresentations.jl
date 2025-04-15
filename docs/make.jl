@@ -1,16 +1,16 @@
-using DecomposingRepresentations
+using DecomposingGroupRepresentations
 using Documenter
 
-DocMeta.setdocmeta!(DecomposingRepresentations, :DocTestSetup, :(using DecomposingRepresentations); recursive=true)
+DocMeta.setdocmeta!(DecomposingGroupRepresentations, :DocTestSetup, :(using DecomposingGroupRepresentations); recursive=true)
 
 makedocs(;
-    modules=[DecomposingRepresentations],
+    modules=[DecomposingGroupRepresentations],
     authors="Viktor Korotynskiy <korotynskiy.viktor@gmail.com> and contributors",
-    repo="https://github.com/MultivariatePolynomialSystems/DecomposingRepresentations.jl",
-    sitename="DecomposingRepresentations.jl",
+    repo="https://github.com/MultivariatePolynomialSystems/DecomposingGroupRepresentations.jl",
+    sitename="DecomposingGroupRepresentations.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://multivariatepolynomialsystems.github.io/DecomposingRepresentations.jl",
+        canonical="https://multivariatepolynomialsystems.github.io/DecomposingGroupRepresentations.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -35,6 +35,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/MultivariatePolynomialSystems/DecomposingRepresentations.jl.git",
+    repo="github.com/MultivariatePolynomialSystems/DecomposingGroupRepresentations.jl.git",
     devbranch="main",
 )

@@ -1,4 +1,4 @@
-module DecomposingRepresentations
+module DecomposingGroupRepresentations
 
 using SparseArrays: SparseMatrixCSC, sparse, findnz, spzeros
 using LinearAlgebra: Diagonal, nullspace, I, dot, norm

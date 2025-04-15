@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = DecomposingRepresentations
+CurrentModule = DecomposingGroupRepresentations
 ```
 
 # Introduction
-DecomposingRepresentations.jl is a Julia package that provides an API for decomposing representations of reductive groups acting on multivariate polynomials using [`DynamicPolynomials.jl`](https://github.com/JuliaAlgebra/DynamicPolynomials.jl).
+DecomposingGroupRepresentations.jl is a Julia package that provides an API for decomposing representations of reductive groups acting on multivariate polynomials using [`DynamicPolynomials.jl`](https://github.com/JuliaAlgebra/DynamicPolynomials.jl).
 
 ## Quick start
 
 ```@repl
-using DecomposingRepresentations
+using DecomposingGroupRepresentations
 
 @polyvar x y z
 vars = [x, y, z]
