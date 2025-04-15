@@ -76,8 +76,6 @@ Describes a matrix Lie group.
 LieGroup(type::String, size::Int)
 ```
 
-Supported Lie group types: SO (special orthogonal).
-
 # Examples
 ```jldoctest
 julia> SO3 = LieGroup("SO", 3)

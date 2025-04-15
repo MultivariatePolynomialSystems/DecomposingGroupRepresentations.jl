@@ -1,4 +1,6 @@
 export WeightStructure,
+    weights,
+    nweights,
     weight_space,
     sym
 

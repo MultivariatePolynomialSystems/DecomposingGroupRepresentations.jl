@@ -1,4 +1,5 @@
 export WeightSpace,
+    weight,
     space
 
 struct WeightSpace{T<:AbstractSpace, W<:Weight}

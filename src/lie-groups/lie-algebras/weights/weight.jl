@@ -19,6 +19,8 @@ Base.getindex(w::Weight, i::Integer) = w.weight[i]
 Base.getindex(w::Weight, inds...) = getindex(w.weight, inds...)
 Base.length(w::Weight) = length(w.weight)
 Base.eachindex(w::Weight) = eachindex(w.weight)
+Base.iterate(w::Weight) = iterate(w.weight)
+Base.iterate(w::Weight, state) = iterate(w.weight, state)
 
 function str_irr(V::String, w::Weight)
     return V * vec_subscript(w.weight)

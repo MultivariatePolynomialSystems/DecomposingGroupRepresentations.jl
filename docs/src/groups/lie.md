@@ -14,6 +14,9 @@ ScalingLieGroup
 LieGroup
 ```
 
+!!! note
+    Supported Lie group types and sizes: SO(3).
+
 ## Lie algebras
 
 ```@docs
