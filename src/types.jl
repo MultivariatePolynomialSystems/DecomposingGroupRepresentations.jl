@@ -326,6 +326,6 @@ irreducibles(::AbstractGroupRepresentation) = error("Not implemented")
 """
     isotypics(::AbstractGroupRepresentation) -> IsotypicDecomposition
 
-Returns the decomposition to isotypic components of the given group representation.
+Returns the decomposition into isotypic components of the given group representation.
 """
 isotypics(::AbstractGroupRepresentation) = error("Not implemented")

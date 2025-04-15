@@ -257,7 +257,7 @@ end
 
 
 """
-    IrreducibleDecomposition{A<:AbstractGroupAction}
+    IrreducibleDecomposition
 
 Represents a decomposition of a group representation into a collection of irreducible representations.
 
