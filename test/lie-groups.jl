@@ -1,4 +1,4 @@
-@testset "Lie groups" begin
+@testset "Lie group Constructors" begin
     @testset "LieGroup" begin
         SO3 = LieGroup("SO", 3)
         @test SO3 isa LieGroup{ComplexF64}
