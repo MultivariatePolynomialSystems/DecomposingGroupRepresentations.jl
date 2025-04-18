@@ -8,7 +8,7 @@ export MatrixGroupAction,
     act
 
 """
-    struct MatrixGroupAction{T<:GroupType, F} <: AbstractGroupAction{T, F}
+    MatrixGroupAction{T<:GroupType, F} <: AbstractGroupAction{T, F}
 
 Represents a group action of a matrix group on a set of variables.
 
@@ -140,7 +140,7 @@ function Base.show(io::IO, a::ScalingLieGroupAction)
 end
 
 """
-    struct DirectProductGroupAction <: AbstractGroupAction
+    DirectProductGroupAction <: AbstractGroupAction
 
 Represents an action of a direct product group on a vector space.
 
