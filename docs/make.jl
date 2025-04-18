@@ -36,6 +36,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/MultivariatePolynomialSystems/DecomposingGroupRepresentations.jl.git",
-    devbranch="main",
-    versions = ["stable", "dev"]
+    versions = ["stable" => "v1.0.0", "dev" => "main"]
 )
