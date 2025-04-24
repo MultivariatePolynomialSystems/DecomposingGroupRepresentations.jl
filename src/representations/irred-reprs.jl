@@ -62,7 +62,7 @@ action(ρ::IrreducibleRepresentation) = ρ.action
 hw_vector(ρ::IrreducibleRepresentation) = hw_vector(ρ.hw_module)
 space(ρ::IrreducibleRepresentation) = HighestWeightModule(action(ρ), hw_vector(ρ))
 highest_weight(ρ::IrreducibleRepresentation) = weight(hw_vector(ρ))
-irreducibles(ρ::IrreducibleRepresentation; decomp_count=nothing) = [ρ]
+irreducibles(ρ::IrreducibleRepresentation; logging::Bool=false, decomp_count=nothing) = [ρ]
 isotypics(ρ::IrreducibleRepresentation) = [IsotypicComponent(ρ)]
 
 function Base.show(io::IO, ::MIME"text/plain", ρ::IrreducibleRepresentation)

@@ -115,3 +115,4 @@ invariants(
 ) = ID[zero(highest_weight(first(isotypics(ID))))]
 
 isotypics(ρ::GroupRepresentation) = IsotypicDecomposition(ρ)
+isotypics(ID::IrreducibleDecomposition) = IsotypicDecomposition(ID)
