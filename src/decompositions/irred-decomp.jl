@@ -15,13 +15,13 @@ function ws_nullspace(
     if all(f -> isapprox(f, zero(f), atol=tol), Bₐ)
         return ws
     end
-    dim(ws) == 1 && return nothing
+    dim(ws) == 1 && return nothing # implied by lines 15-17
     Cs = zero_combinations(Bₐ; tol=tol, logging=logging)
     isempty(Cs) && return nothing
     return WeightSpace(
         weight(ws),
         PolySpace{field_type(ws)}([div_by_smallest_coeff(sum(c .* B)) for c in Cs])
-        )
+    )
 end
 
 function common_nullspace_as_weight_vectors(
@@ -38,7 +38,7 @@ function common_nullspace_as_weight_vectors(
     for X in Xs
         wsₙ = ws_nullspace(X, a, wsₙ)
         if isnothing(wsₙ)
-            logging && printstyled("Found no common nullspace, smth is wrong!\n", color=:red)
+            error("Found no common nullspace, while looking for $(nhwv) highest weight vectors; dim(ws) = $(dim(ws))")
             return WeightVector[] # error("Didn't find any highest weight vectors, had to find $(nhwv)")
         end
     end
@@ -46,8 +46,8 @@ function common_nullspace_as_weight_vectors(
     if dim(wsₙ) != nhwv
         error("Found $(dim(wsₙ)) highest weight vectors, expected $(nhwv)")
     end
-    logging && printstyled("Found: ", color=:green)
-    logging && printstyled("$(join(map(repr, basis(space(wsₙ))), ", "))\n", color=:green)
+    # logging && printstyled("Found: ", color=:green)
+    # logging && printstyled("$(join(map(repr, basis(space(wsₙ))), ", "))\n", color=:green)
 
     return [WeightVector(weight(wsₙ), div_by_smallest_coeff(v)) for v in basis(space(wsₙ))] # TODO: remove div_by_smallest_coeff
 end
@@ -109,11 +109,19 @@ function irreducibles(
     
     logging && printstyled("Applying Clebsch-Gordan to decompose $(to_string(V)) into irreducibles...\n", color=:blue)
     sym_ws, cg_decomp = sym_weight_struct(highest_weight(Vb), algebra(action(ρ)), power(V), ws)
+    @assert Set(weights(sym_ws)) == keys(cg_decomp)
+
     logging && printstyled(to_string(V), " = ", str_irr_decomp("V", cg_decomp), "\n", color=:blue)
 
     Xs = positive_root_elements(algebra(action(ρ)))
     hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), sym_ws, cg_decomp; logging=logging)
-    return [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors]
+
+    irrs = [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors]
+    logging && println("sum = ", sum([dim(space(irr)) for irr in irrs]))
+    logging && println("dim(V): ", dim(V), ", dim(Vb): ", dim(Vb), ", power(V): ", power(V))
+    logging && println("dim(cg_decomp): ", weyl_dim(cg_decomp, algebra(action(ρ))))
+    @assert sum([dim(space(irr)) for irr in irrs]) == dim(V)
+    return irrs
 end
 
 function irreducibles(
@@ -148,6 +156,8 @@ function irreducibles(
         ρᵢ = GroupRepresentation(action(ρ), Vᵢ)
         append!(irreds, irreducibles(ρᵢ; logging=logging, decomp_count=decomp_count))
     end
+
+    @assert sum([dim(space(irr)) for irr in irreds]) == dim(V)
     return irreds
 end
 
@@ -173,6 +183,7 @@ function irreducibles(
     
     logging && printstyled("Applying Clebsch-Gordan to decompose $(to_string(V)) into irreducibles...\n", color=:blue)
     cg_decomp = tensor(hw₁, hw₂, algebra(action(ρ)))
+
     if length(cg_decomp) == 1
         logging && printstyled("The tensor product is irreducible, returning the tensor product of the highest weight vectors\n", color=:red)
         return [IrreducibleRepresentation(action(ρ), hw_vector(V₁)*hw_vector(V₂))]
@@ -184,7 +195,10 @@ function irreducibles(
 
     Xs = positive_root_elements(algebra(action(ρ)))
     hw_vectors = common_nullspace_as_weight_vectors(Xs, action(ρ), tensor_ws, cg_decomp; logging=logging)
-    return [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors]
+
+    irrs = [IrreducibleRepresentation(action(ρ), hwv) for hwv in hw_vectors]
+    @assert sum([dim(space(irr)) for irr in irrs]) == dim(V)
+    return irrs
 end
 
 function irreducibles(
@@ -216,12 +230,13 @@ function irreducibles(
 
     irreds = IrreducibleRepresentation{A}[]
     for irr₁ in irrs₁, irr₂ in irrs₂
-        V = TensorProduct([space(irr₁), space(irr₂)])
-        ρV = GroupRepresentation(action(ρ), V)
+        Vt = TensorProduct([space(irr₁), space(irr₂)])
+        ρV = GroupRepresentation(action(ρ), Vt)
         irrs = irreducibles(ρV; logging=logging, decomp_count=decomp_count)
-        @assert sum([dim(space(irr)) for irr in irrs]) == dim(V)
+        @assert sum([dim(space(irr)) for irr in irrs]) == dim(Vt)
         append!(irreds, irrs)
     end
+    @assert sum([dim(space(irr)) for irr in irreds]) == dim(V)
     return irreds
 end
 

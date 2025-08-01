@@ -3,7 +3,7 @@ export rref, monomials, coeffs_matrix, polynomials
 export num_mons
 export superscript, subscript
 export multiexponents, div_by_smallest_coeff
-export eye, a2p, p2a, rand_unit
+export eye, a2p, p2a, rand_unit, xx
 
 a2p(M::AbstractMatrix{<:Number}) = [M; ones(eltype(M), 1, size(M, 2))]
 p2a(M::AbstractMatrix{<:Number}) = (M./M[end:end,:])[1:end-1,:]
@@ -17,6 +17,7 @@ Base.rand(::Type{Rational{T}}) where T <: Integer = rand(T(-10):T(10)) // rand(T
 Base.rand(::Type{Complex{Rational{T}}}) where T <: Integer = rand(Rational{T}) + rand(Rational{T})*im
 Base.rand(T::DataType, n::Int) = [rand(T) for _ in 1:n]
 
+xx(v) = [0 -v[3] v[2]; v[3] 0 -v[1]; -v[2] v[1] 0]
 eye(n::Integer) = eye(Float64, n)
 eye(T::Type, n::Integer) = Matrix{T}(I(n))
 
@@ -161,11 +162,16 @@ function rref(
     F::Vector{<:AbstractPolynomial{T}};
     tol::Real=1e-5
 ) where T
+    printstyled("Computing rref, merging monomials...\n", color=:blue)
     mons = monomials(F)
+    printstyled("Monomials merged\n", color=:blue)
+    printstyled("Constructing coefficients matrix...\n", color=:blue)
     M = Matrix(transpose(coeffs_matrix(F, mons)))
+    printstyled("Coefficients matrix constructed\n", color=:blue)
     rref!(M, tol)
     sparsify!(M, tol)
     N = filter(row -> !iszero(row), eachrow(M))
+    printstyled("RREF computed\n", color=:blue)
     return polynomials(N, mons)
 end
 
@@ -183,17 +189,21 @@ function zero_combinations(
         M = rand(T, size(M, 2), size(M, 1)) * M
     end
     logging && print(crayon"#f4d03f", "Computing nullspace of $(size(M)) matrix...\n")
-    N = Matrix(transpose(nullspace(M; atol=tol)))
-    logging && print(crayon"#f4d03f", "Nullspace is $(size(N, 1))-dimensional\n")
+    Nc = Matrix(transpose(nullspace(M; atol=tol)))
+    logging && print(crayon"#f4d03f", "Nullspace is $(size(Nc, 1))-dimensional\n")
+    N = copy(Nc)
     sparsify!(N, tol)
     rref!(N, tol)
     for n in N
         if norm(n) > 1e3
+            display(Nc)
             display(N)
             error("Nullspace contains large coefficients")
         end
     end
     sparsify!(N, tol)
+    # println("Nc: ", "max = $(maximum(abs, Nc; init=-Inf))", ", min = $(minimum(abs, Nc; init=Inf))")
+    # println("N: ", "max = $(maximum(abs, N; init=-Inf))", ", min = $(minimum(abs, N; init=Inf))")
     return eachrow(N)
 end
 
