@@ -1,7 +1,7 @@
 name = "DecomposingGroupRepresentations"
 uuid = "3934549d-b4b9-4a85-8fa6-9c281fbf1a3e"
 authors = ["Viktor Korotynskiy <korotynskiy.viktor@gmail.com> and contributors"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
