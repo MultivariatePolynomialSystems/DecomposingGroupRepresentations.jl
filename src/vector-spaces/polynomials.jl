@@ -1,5 +1,6 @@
 export FixedDegreePolynomials,
-    FixedMultidegreePolynomials
+    FixedMultidegreePolynomials,
+    BoundedDegreePolynomials
 
 @doc raw"""
     FixedDegreePolynomials <: AbstractSymmetricPower
@@ -121,4 +122,32 @@ end
 
 function Base.show(io::IO, V::FixedMultidegreePolynomials)
     print(io, "FixedMultidegreePolynomials space of dimension $(dim(V))")
+end
+
+
+struct BoundedDegreePolynomials{F,V,M} <: AbstractDirectSum{Polynomial{V,M,F}, F}
+    variables::Vector{Variable{V,M}}
+    degree::Int
+end
+
+BoundedDegreePolynomials(
+    vars::Vector{Variable{V,M}},
+    d::Int
+) where {V,M} = BoundedDegreePolynomials{ComplexF64,V,M}(unique(vars), d)
+
+var_space(V::BoundedDegreePolynomials{F}) where F = VariableSpace{F}(V.variables)
+degree(V::BoundedDegreePolynomials) = V.degree
+summands(V::BoundedDegreePolynomials) = [FixedDegreePolynomials(V.variables, d) for d in 0:V.degree]
+nsummands(V::BoundedDegreePolynomials) = V.degree + 1
+DynamicPolynomials.variables(V::BoundedDegreePolynomials) = V.variables
+DynamicPolynomials.nvariables(V::BoundedDegreePolynomials) = length(V.variables)
+
+function Base.show(io::IO, ::MIME"text/plain", V::BoundedDegreePolynomials)
+    println(io, "BoundedDegreePolynomials space of dimension $(dim(V))")
+    println(io, " variables: ", join(map(repr, variables(V)), ", "))
+    print(io, " degree: ", V.degree)
+end
+
+function Base.show(io::IO, V::BoundedDegreePolynomials)
+    print(io, "BoundedDegreePolynomials space of dimension $(dim(V))")
 end

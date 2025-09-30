@@ -14,6 +14,7 @@ summands(V::DirectSum) = V.summands
 nsummands(V::DirectSum) = length(summands(V))
 dim(V::DirectSum) = sum(dim.(summands(V)))
 basis(V::DirectSum) = vcat([basis(Vi) for Vi in summands(V)]...)
+Base.getindex(V::DirectSum, i::Int) = summands(V)[i]
 
 function Base.show(io::IO, V::DirectSum; indent::Int=0)
     println(io, " "^indent, "DirectSum of dimension $(dim(V))")
@@ -27,7 +28,7 @@ struct SymmetricPower{T, F, S<:AbstractSpace{T, F}} <: AbstractSymmetricPower{T,
     power::Int
 
     function SymmetricPower{T, F, S}(base_space::S, power::Int) where {T, F, S<:AbstractSpace{T, F}}
-        power < 1 && throw(ArgumentError("Power must be a positive integer"))
+        power < 0 && throw(ArgumentError("Power must be a non-negative integer"))
         power == 1 && return base_space
         return new(base_space, power)
     end
@@ -54,6 +55,10 @@ end
 
 to_string(V::SymmetricPower) = "Sym$(superscript(power(V)))($(to_string(base_space(V))))"
 
+function basis(V::SymmetricPower)
+    power(V) == 0 && return [one(rand(base_space(V)))]
+    # TODO: extend to other powers
+end
 
 struct TensorProduct{T, F, S₁<:AbstractSpace{T,F}, S₂<:AbstractSpace{T,F}} <: AbstractTensorProduct{T, F}
     V₁::S₁

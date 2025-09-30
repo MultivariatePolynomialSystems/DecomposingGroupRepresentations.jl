@@ -160,18 +160,19 @@ polynomials(
 
 function rref(
     F::Vector{<:AbstractPolynomial{T}};
-    tol::Real=1e-5
+    tol::Real=1e-5,
+    logging::Bool=false
 ) where T
-    printstyled("Computing rref, merging monomials...\n", color=:blue)
+    logging && printstyled("Computing rref, merging monomials...\n", color=:blue)
     mons = monomials(F)
-    printstyled("Monomials merged\n", color=:blue)
-    printstyled("Constructing coefficients matrix...\n", color=:blue)
+    logging && printstyled("Monomials merged\n", color=:blue)
+    logging && printstyled("Constructing coefficients matrix...\n", color=:blue)
     M = Matrix(transpose(coeffs_matrix(F, mons)))
-    printstyled("Coefficients matrix constructed\n", color=:blue)
+    logging && printstyled("Coefficients matrix constructed\n", color=:blue)
     rref!(M, tol)
     sparsify!(M, tol)
     N = filter(row -> !iszero(row), eachrow(M))
-    printstyled("RREF computed\n", color=:blue)
+    logging && printstyled("RREF computed\n", color=:blue)
     return polynomials(N, mons)
 end
 
@@ -188,7 +189,7 @@ function zero_combinations(
         logging && print(crayon"#f4d03f", "Squaring up the $(size(M)) coefficients matrix...\n")
         M = rand(T, size(M, 2), size(M, 1)) * M
     end
-    logging && print(crayon"#f4d03f", "Computing nullspace of $(size(M)) matrix...\n")
+    print(crayon"#f4d03f", "Computing nullspace of $(size(M)) matrix...\n")
     Nc = Matrix(transpose(nullspace(M; atol=tol)))
     logging && print(crayon"#f4d03f", "Nullspace is $(size(Nc, 1))-dimensional\n")
     N = copy(Nc)

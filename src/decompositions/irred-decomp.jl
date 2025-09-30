@@ -65,19 +65,19 @@ function common_nullspace_as_weight_vectors(
 end
 
 function irreducibles(
-    ρ::GroupRepresentation{A, T}
+    ρ::GroupRepresentation{A, T};
+    logging::Bool=false
 ) where {A<:AbstractGroupAction{Lie}, T<:DirectSum}
     irreds = IrreducibleRepresentation{A}[]
     for V in summands(space(ρ))
-        append!(irreds, irreducibles(GroupRepresentation(action(ρ), V)))
+        append!(irreds, irreducibles(GroupRepresentation(action(ρ), V); logging=logging))
     end
     return irreds
 end
 
 function irreducibles(
     ρ::GroupRepresentation{A, S};
-    logging::Bool=false,
-    decomp_count::Union{Dict{AbstractWeightStruct, Int},Nothing}=nothing
+    logging::Bool=false
 ) where {A<:AbstractGroupAction{Lie}, S<:VariableSpace}
     logging && printstyled("Decomposing the space of variables $(to_string(space(ρ))) into irreducibles...\n", color=:red)
 
@@ -93,19 +93,13 @@ end
 
 function irreducibles(
     ρ::GroupRepresentation{A, S};
-    logging::Bool=false,
-    decomp_count::Dict{AbstractWeightStruct, Int}=nothing
+    logging::Bool=false
 ) where {T, F, A<:AbstractGroupAction{Lie}, S<:SymmetricPower{T, F, <:HighestWeightModule}}
     V = space(ρ)
     logging && printstyled("Decomposing $(to_string(V)) into irreducibles...\n", color=:blue)
 
     Vb = base_space(V)
     ws = weight_structure(Vb)
-
-    if !isnothing(decomp_count)
-        t = SymWeightStruct(highest_weight(Vb), power(V))
-        decomp_count[t] = get(decomp_count, t, 0) + 1
-    end
     
     logging && printstyled("Applying Clebsch-Gordan to decompose $(to_string(V)) into irreducibles...\n", color=:blue)
     sym_ws, cg_decomp = sym_weight_struct(highest_weight(Vb), algebra(action(ρ)), power(V), ws)
@@ -124,47 +118,92 @@ function irreducibles(
     return irrs
 end
 
-function irreducibles(
-    ρ::GroupRepresentation{A, T};
-    logging::Bool=false,
-    decomp_count::Dict{AbstractWeightStruct, Int}=nothing
-) where {A<:AbstractGroupAction{Lie}, T<:SymmetricPower}
+function irreducibles_sym_sum_one_dim(
+    ρ::GroupRepresentation{A, S};
+    logging::Bool=false
+) where {T, F, A<:AbstractGroupAction{Lie}, S<:SymmetricPower{T, F, <:DirectSum{T, F, <:HighestWeightModule}}}
     V = space(ρ)
-    logging && printstyled("Decomposing $(to_string(V)) into irreducibles...\n", color=:magenta)
-
-    ρ_base = GroupRepresentation(action(ρ), base_space(V))
-    irreds_base = irreducibles(ρ_base; logging=logging, decomp_count=decomp_count)
-    if length(irreds_base) == 1
-        logging && printstyled("$(to_string(base_space(V))) is already irreducible, decomposing its symmetric power directly...\n", color=:magenta)
-        V = SymmetricPower(space(first(irreds_base)), power(V))
-        ρᵢ = GroupRepresentation(action(ρ), V)
-        return irreducibles(ρᵢ; logging=logging, decomp_count=decomp_count)
-    end
-    mexps = multiexponents(degree=power(V), nvars=length(irreds_base))
-
-    Vs = [TensorProduct([SymmetricPower(space(irreds_base[idx]), val) for (val, idx) in zip(mexp.nzval, mexp.nzind)]) for mexp in mexps]
-    @assert dim(V) == sum([dim(Vᵢ) for Vᵢ in Vs])
-    if logging
-        printstyled("Sym$(superscript(power(V)))(", color=:magenta)
-        printstyled(join([to_string(space(irr)) for irr in irreds_base], " ⊕ "), ") = ", color=:magenta)
-        printstyled(join(["(" * to_string(V) * ")" for V in Vs], " ⊕ "), color=:magenta)
-        println()
-    end
-
+    Vb = base_space(V)
+    @assert all([dim(Vᵢ) == 1 for Vᵢ in summands(Vb)])
+    
+    mexps = multiexponents(degree=power(V), nvars=nsummands(Vb))
     irreds = IrreducibleRepresentation{A}[]
-    for Vᵢ in Vs
-        ρᵢ = GroupRepresentation(action(ρ), Vᵢ)
-        append!(irreds, irreducibles(ρᵢ; logging=logging, decomp_count=decomp_count))
+    for mexp in mexps
+        hw = sum([val*highest_weight(Vb[idx]) for (val, idx) in zip(mexp.nzval, mexp.nzind)])
+        hwv = WeightVector(hw, prod([vector(hw_vector(Vb[idx]))^val for (val, idx) in zip(mexp.nzval, mexp.nzind)]))
+        push!(irreds, IrreducibleRepresentation(action(ρ), hwv))
     end
-
-    @assert sum([dim(space(irr)) for irr in irreds]) == dim(V)
     return irreds
 end
 
 function irreducibles(
     ρ::GroupRepresentation{A, S};
+    logging::Bool=false
+) where {T, F, A<:AbstractGroupAction{Lie}, S<:SymmetricPower{T, F, <:DirectSum{T, F, <:HighestWeightModule}}}
+    V = space(ρ)
+    Vb = base_space(V)
+    if all([dim(Vᵢ) == 1 for Vᵢ in summands(Vb)])
+        return irreducibles_sym_sum_one_dim(ρ; logging=logging)
+    else
+        # Divide into higher-dimensional and sum of 1-dimensional irreducibles
+        base_more_dim = [Vᵢ for Vᵢ in summands(Vb) if dim(Vᵢ) > 1]
+        base_one_dim = DirectSum([Vᵢ for Vᵢ in summands(Vb) if dim(Vᵢ) == 1])
+        base_spaces = vcat(base_more_dim, [base_one_dim])
+
+        mexps = multiexponents(degree=power(V), nvars=length(base_spaces))
+        Vs = [TensorProduct([SymmetricPower(base_spaces[idx], val) for (val, idx) in zip(mexp.nzval, mexp.nzind)]) for mexp in mexps]
+
+        @assert dim(V) == sum([dim(Vᵢ) for Vᵢ in Vs])
+        if logging
+            printstyled("Sym$(superscript(power(V)))(", color=:magenta)
+            printstyled(join([to_string(Vᵢ) for Vᵢ in summands(Vb)], " ⊕ "), ") = ", color=:magenta)
+            printstyled(join(["(" * to_string(V) * ")" for V in Vs], " ⊕ "), color=:magenta)
+            println()
+        end
+
+        irreds = IrreducibleRepresentation{A}[]
+        for Vᵢ in Vs
+            ρᵢ = GroupRepresentation(action(ρ), Vᵢ)
+            append!(irreds, irreducibles(ρᵢ; logging=logging))
+        end
+
+        @assert sum([dim(space(irr)) for irr in irreds]) == dim(V)
+        return irreds
+    end
+end
+
+function irreducibles(
+    ρ::GroupRepresentation{A, T};
     logging::Bool=false,
-    decomp_count::Dict{AbstractWeightStruct, Int}=nothing
+) where {A<:AbstractGroupAction{Lie}, T<:SymmetricPower}
+    V = space(ρ)
+    logging && printstyled("Decomposing $(to_string(V)) into irreducibles...\n", color=:magenta)
+
+    if power(V) == 0
+        hwv = WeightVector(zero_weight(algebra(action(ρ))), basis(V)[1]) # constant 1
+        return [IrreducibleRepresentation(action(ρ), hwv)]
+    end
+
+    ρ_base = GroupRepresentation(action(ρ), base_space(V))
+    irreds_base = irreducibles(ρ_base; logging=logging)
+
+    if length(irreds_base) == 1
+        logging && printstyled("$(to_string(base_space(V))) is already irreducible, decomposing its symmetric power directly...\n", color=:magenta)
+        V = SymmetricPower(space(first(irreds_base)), power(V))
+        ρᵢ = GroupRepresentation(action(ρ), V)
+        return irreducibles(ρᵢ; logging=logging)
+    end
+
+    Vb = DirectSum([space(irr) for irr in irreds_base])
+    return irreducibles(
+        GroupRepresentation(action(ρ), SymmetricPower(Vb, power(V)));
+        logging=logging
+    )
+end
+
+function irreducibles(
+    ρ::GroupRepresentation{A, S};
+    logging::Bool=false
 ) where {T, F, A<:AbstractGroupAction{Lie}, S<:TensorProduct{T, F, <:HighestWeightModule, <:HighestWeightModule}}
     V = space(ρ)
     logging && printstyled("Decomposing $(to_string(V)) into irreducibles...\n", color=:blue)
@@ -176,10 +215,6 @@ function irreducibles(
     end
 
     hw₁, hw₂ = highest_weight(V₁), highest_weight(V₂)
-    if !isnothing(decomp_count)
-        t = TensorWeightStruct(hw₁, hw₂)
-        decomp_count[t] = get(decomp_count, t, 0) + 1
-    end
     
     logging && printstyled("Applying Clebsch-Gordan to decompose $(to_string(V)) into irreducibles...\n", color=:blue)
     cg_decomp = tensor(hw₁, hw₂, algebra(action(ρ)))
@@ -204,22 +239,19 @@ end
 function irreducibles(
     ρ::GroupRepresentation{A, S};
     logging::Bool=false,
-    decomp_count::Dict{AbstractWeightStruct, Int}=nothing
 ) where {A<:AbstractGroupAction{Lie}, S<:TensorProduct}
     V = space(ρ)
     logging && printstyled("Decomposing $(to_string(V)) into irreducibles...\n", color=:magenta)
     
     irrs₁ = irreducibles(
         GroupRepresentation(action(ρ), first(space(ρ)));
-        logging=logging,
-        decomp_count=decomp_count
+        logging=logging
     )
     @assert sum([dim(space(irr)) for irr in irrs₁]) == dim(first(space(ρ)))
     
     irrs₂ = irreducibles(
         GroupRepresentation(action(ρ), second(space(ρ)));
-        logging=logging,
-        decomp_count=decomp_count
+        logging=logging
     )
     @assert sum([dim(space(irr)) for irr in irrs₂]) == dim(second(space(ρ)))
 
@@ -232,7 +264,7 @@ function irreducibles(
     for irr₁ in irrs₁, irr₂ in irrs₂
         Vt = TensorProduct([space(irr₁), space(irr₂)])
         ρV = GroupRepresentation(action(ρ), Vt)
-        irrs = irreducibles(ρV; logging=logging, decomp_count=decomp_count)
+        irrs = irreducibles(ρV; logging=logging)
         @assert sum([dim(space(irr)) for irr in irrs]) == dim(Vt)
         append!(irreds, irrs)
     end
@@ -246,11 +278,9 @@ function irreducibles(
 ) where {A<:AbstractGroupAction{Lie}, S<:FixedDegreePolynomials}
     V = space(ρ)
     V = SymmetricPower(var_space(V), degree(V))
-    d = Dict{AbstractWeightStruct, Int}()
     irrs = irreducibles(
         GroupRepresentation(action(ρ), V);
-        logging=logging,
-        decomp_count=d
+        logging=logging
     )
     return IrreducibleDecomposition(ρ, irrs)
 end
@@ -261,14 +291,26 @@ function irreducibles(
 ) where {A<:AbstractGroupAction{Lie}, S<:FixedMultidegreePolynomials}
     V = space(ρ)
     V = TensorProduct([SymmetricPower(Vᵢ, dᵢ) for (Vᵢ, dᵢ) in zip(var_spaces(V), degrees(V))])
-    d = Dict{AbstractWeightStruct, Int}()
     irrs = irreducibles(
         GroupRepresentation(action(ρ), V);
-        logging=logging,
-        decomp_count=d
+        logging=logging
     )
     return IrreducibleDecomposition(ρ, irrs)
 end
+
+function irreducibles(
+    ρ::GroupRepresentation{A, S};
+    logging::Bool=false
+) where {A<:AbstractGroupAction{Lie}, S<:BoundedDegreePolynomials}
+    V = space(ρ)
+    V = DirectSum([SymmetricPower(var_space(V), d) for d in 0:degree(V)])
+    irrs = irreducibles(
+        GroupRepresentation(action(ρ), V);
+        logging=logging
+    )
+    return IrreducibleDecomposition(ρ, irrs)
+end
+
 
 
 """

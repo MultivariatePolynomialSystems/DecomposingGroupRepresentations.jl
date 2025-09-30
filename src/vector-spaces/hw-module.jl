@@ -59,6 +59,7 @@ DynamicPolynomials.nvariables(V::HighestWeightModule) = nvariables(vector(hw_vec
 
 # Weyl dimension formula
 function weyl_dim(λ::Weight, A::AbstractLieAlgebra)
+    is_abelian(A) && return 1
     Δ⁺ = to_vector.(positive_roots(A))
     ρ = sum(Δ⁺) / 2
     return Int(prod([dot(λ.weight + ρ, α) / dot(ρ, α) for α in Δ⁺]))
@@ -105,6 +106,7 @@ function basis(
     #     B = orbit(hw_vector(V), action(V), Set{weight_type(V)}())
     #     V.basis = B
     # end
+    dim(V) == 1 && return [hw_vector(V)]
     B = orbit(hw_vector(V), action(V), Set{weight_type(V)}())
     return as_weight_vectors ? B : [vector(wv) for wv in B]
 end

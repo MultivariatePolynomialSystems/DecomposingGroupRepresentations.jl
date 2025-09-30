@@ -36,7 +36,7 @@ function act(
         mv = matrix(X)*vars
         for (i, p) in enumerate(mv)
             if !iszero(p)
-                res += p * differentiate(f, vars[i])
+                res -= p * differentiate(f, vars[i])
             end
         end
     end
@@ -86,3 +86,12 @@ act(
     a::AbstractGroupAction,
     wv::WeightVector
 ) = WeightVector(root(X)+weight(wv), act(X, a, vector(wv)))
+
+function act(
+    X::AbstractLieAlgebraElem,
+    a::AbstractGroupAction,
+    r::RationalPoly
+)
+    n,d = numerator(r), denominator(r)
+    return (act(X,a,n)*d - n*act(X,a,d))/d^2
+end

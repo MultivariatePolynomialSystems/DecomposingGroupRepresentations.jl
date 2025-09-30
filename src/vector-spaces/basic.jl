@@ -22,6 +22,7 @@ Base.convert(
 
 # TODO: Use generic nullspace
 function Base.:∩(V₁::MatrixVectorSpace, V₂::MatrixVectorSpace)
+    # println("Computing nullspace of $(size(V₁, 1)) x $(size(V₁, 2) + size(V₂, 2)) matrix")
     N = nullspace(hcat(matrix(V₁), matrix(V₂)))
     return MatrixVectorSpace(matrix(V₁)*N[1:dim(V₁), :]) # TODO: pick V with smaller dim
 end
@@ -55,6 +56,7 @@ end
 to_string(V::VariableSpace) = "⟨$(join(map(repr, basis(V)), ", "))⟩"
 
 Base.rand(V::AbstractSpace{T, F}) where {T, F} = sum(rand(F, dim(V)) .* basis(V))
+field_space(V::VariableSpace{F}) where F = PolySpace{F}(one(first(variables(V))))
 
 
 """

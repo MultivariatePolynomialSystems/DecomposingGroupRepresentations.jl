@@ -229,3 +229,4 @@ negative_root_elements(alg::SumLieAlgebra) = get_elements(alg, :negative_root_el
 zero_weight(alg::AbstractLieAlgebra) = zero(weight_type(alg), rank(alg))
 positive_roots(alg::AbstractLieAlgebra) = [root(pre) for pre in positive_root_elements(alg)]
 negative_roots(alg::AbstractLieAlgebra) = [root(nre) for nre in negative_root_elements(alg)]
+is_abelian(alg::AbstractLieAlgebra) = dim(alg) == rank(alg)
